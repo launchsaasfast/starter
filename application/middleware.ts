@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getRateLimitService, RateLimitTier, rateLimitUtils } from '@/lib/rate-limit';
+import { getRateLimitService, RateLimitTier, rateLimitUtils } from './lib/rate-limit';
 
 /**
  * Configuration des routes à protéger et leurs tiers de rate limiting
@@ -156,26 +156,14 @@ export async function middleware(request: NextRequest) {
       const ipHeaders = rateLimitUtils.createRateLimitHeaders(smsLimits.ipLimit);
       
       // Ajouter les headers IP
-      ipHeaders.forEach((value, key) => {
+      ipHeaders.forEach((value: string, key: string) => {
         response.headers.set(`${key}-IP`, value);
       });
       
       // Ajouter les headers utilisateur si disponibles
       if (userID && smsLimits.userLimit) {
         const userHeaders = rateLimitUtils.createRateLimitHeaders(smsLimits.userLimit);
-        userHeaders.forEach((value, key) => {
-          response.headers.set(`${key}-User`, value);
-        });
-      }
-      
-      // Ajouter les headers IP
-      ipHeaders.forEach((value, key) => {
-        response.headers.set(`${key}-IP`, value);
-      });
-      
-      // Ajouter les headers utilisateur si disponibles
-      if (userID) {
-        userHeaders.forEach((value, key) => {
+        userHeaders.forEach((value: string, key: string) => {
           response.headers.set(`${key}-User`, value);
         });
       }
@@ -198,8 +186,6 @@ export async function middleware(request: NextRequest) {
     
     // Si la limite est dépassée
     if (!rateLimitResult.success) {
-      const headers = rateLimitUtils.createRateLimitHeaders(rateLimitResult);
-      
       // Messages personnalisés selon le tier
       let errorMessage = 'Trop de requêtes. Essayez plus tard.';
       
@@ -220,8 +206,7 @@ export async function middleware(request: NextRequest) {
       
       return rateLimitUtils.createTooManyRequestsResponse(
         rateLimitResult,
-        errorMessage,
-        headers
+        errorMessage
       );
     }
     
@@ -229,7 +214,7 @@ export async function middleware(request: NextRequest) {
     const response = NextResponse.next();
     const headers = rateLimitUtils.createRateLimitHeaders(rateLimitResult);
     
-    headers.forEach((value, key) => {
+    headers.forEach((value: string, key: string) => {
       response.headers.set(key, value);
     });
     
