@@ -251,6 +251,28 @@ class SecurityLogger {
       userId
     );
   }
+
+  /**
+   * Log spécifique pour les déconnexions réussies
+   */
+  async logLogoutSuccess(
+    userId?: string,
+    email?: string,
+    request?: Request
+  ): Promise<void> {
+    if (request) {
+      await this.logSecurityEvent(
+        SecurityEventType.LOGOUT_SUCCESS,
+        SecurityEventSeverity.INFO,
+        request,
+        {
+          logout_method: 'success'
+        },
+        userId,
+        email
+      );
+    }
+  }
 }
 
 /**

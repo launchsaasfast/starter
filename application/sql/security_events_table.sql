@@ -3,10 +3,10 @@
 
 CREATE TABLE IF NOT EXISTS security_events (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    event_type text NOT NULL,
-    severity text NOT NULL CHECK (severity IN ('INFO', 'WARNING', 'ERROR', 'CRITICAL')),
-    ip_address text NOT NULL,
-    user_agent text,
+    event_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(20) NOT NULL CHECK (severity IN ('INFO', 'WARNING', 'ERROR', 'CRITICAL')),
+    ip_address INET NOT NULL,
+    user_agent TEXT,
     user_id uuid REFERENCES auth.users(id),
     email text,
     details jsonb DEFAULT '{}',

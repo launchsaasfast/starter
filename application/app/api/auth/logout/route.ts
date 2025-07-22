@@ -3,9 +3,20 @@ import { supabase } from '@/lib/supabaseClient';
 import { 
   securityLogger, 
   SecurityHeaders,
+  SecurityMessages,
   SecurityEventType,
   SecurityEventSeverity 
 } from '@/lib/security-logger';
+
+/**
+ * Délai minimum de réponse pour éviter les attaques de timing
+ */
+async function ensureMinimumResponseTime(startTime: number, minMs: number = 100): Promise<void> {
+  const elapsed = Date.now() - startTime;
+  if (elapsed < minMs) {
+    await new Promise(resolve => setTimeout(resolve, minMs - elapsed));
+  }
+}
 
 /**
  * Extrait l'user ID du token d'autorisation
@@ -35,6 +46,8 @@ function extractUserFromAuth(request: NextRequest): { userId?: string; email?: s
 }
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
+  
   try {
     // Extraction des infos utilisateur avant déconnexion
     const userInfo = extractUserFromAuth(req);
@@ -70,18 +83,27 @@ export async function POST(req: NextRequest) {
         userInfo.email
       );
 
-      return NextResponse.json(
+      // Assurer le délai minimum avant réponse
+      await ensureMinimumResponseTime(startTime);
+
+      const response = NextResponse.json(
         { error: 'Erreur lors de la déconnexion. Veuillez réessayer.' },
         { status: 500 }
       );
+
+      SecurityHeaders.addSecurityHeaders(response);
+      return response;
     }
 
     // Log de succès de déconnexion
-    await securityLogger.logLogout(
-      req,
+    await securityLogger.logLogoutSuccess(
       userInfo.userId,
-      userInfo.email
+      userInfo.email,
+      req
     );
+
+    // Assurer le délai minimum avant réponse
+    await ensureMinimumResponseTime(startTime);
 
     // Création de la réponse de succès
     const response = NextResponse.json({
@@ -109,10 +131,16 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // Réponse d'erreur générique
-    return NextResponse.json(
+    // Assurer le délai minimum avant réponse
+    await ensureMinimumResponseTime(startTime);
+
+    // Réponse d'erreur générique avec SecurityMessages
+    const response = NextResponse.json(
       { error: 'Une erreur est survenue lors de la déconnexion.' },
       { status: 500 }
     );
+
+    SecurityHeaders.addSecurityHeaders(response);
+    return response;
   }
 }
