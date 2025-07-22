@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { LoginForm } from '@/components/login-form';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
@@ -25,34 +26,10 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10">
-      <h1 className="text-2xl mb-4">Sign In</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-sm">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            className="w-full border px-2 py-1"
-          />
-        </div>
-        <div>
-          <label htmlFor="password" className="block text-sm">Password</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            className="w-full border px-2 py-1"
-          />
-        </div>
-        {error && <p className="text-red-600">{error}</p>}
-        <button type="submit" className="w-full bg-blue-500 text-white py-2">Sign In</button>
-      </form>
+    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+      <div className="w-full max-w-sm">
+        <LoginForm />
+      </div>
     </div>
   );
 }
