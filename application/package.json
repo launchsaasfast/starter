@@ -20,6 +20,7 @@
     "check:security": "npx tsx scripts/check-security-setup.ts"
   },
   "dependencies": {
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.52.0",
     "@upstash/ratelimit": "^2.0.5",
     "@upstash/redis": "^1.35.1",
