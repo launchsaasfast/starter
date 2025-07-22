@@ -11,6 +11,7 @@ import { Ratelimit } from '@upstash/ratelimit';
 export interface RateLimitConfig {
   requests: number;
   window: string;
+  windowMs: number; // Fenêtre en millisecondes pour Upstash
   identifier?: string;
 }
 
@@ -33,30 +34,35 @@ export enum RateLimitTier {
 export const RATE_LIMIT_CONFIGS: Record<RateLimitTier, RateLimitConfig> = {
   [RateLimitTier.AUTH_OPERATIONS]: {
     requests: 10,
-    window: '10s'
+    window: '10s',
+    windowMs: 10 * 1000 // 10 secondes
   },
   [RateLimitTier.SMS_OPERATIONS]: {
     requests: 5, // Sera ajusté selon IP vs user
-    window: '1h'
+    window: '1h',
+    windowMs: 60 * 60 * 1000 // 1 heure
   },
   [RateLimitTier.GENERAL_PROTECTION]: {
     requests: 1000,
-    window: '1m'
+    window: '1m',
+    windowMs: 60 * 1000 // 1 minute
   },
   [RateLimitTier.AUTHENTICATED_OPERATIONS]: {
     requests: 100,
-    window: '1m'
+    window: '1m',
+    windowMs: 60 * 1000 // 1 minute
   },
   [RateLimitTier.DATA_EXPORTS]: {
     requests: 3,
-    window: '1d'
+    window: '1d',
+    windowMs: 24 * 60 * 60 * 1000 // 1 jour
   }
 };
 
 // Configuration SMS spécifique (IP + user-based)
 export const SMS_RATE_LIMITS = {
-  PER_IP: { requests: 5, window: '1h' },
-  PER_USER: { requests: 3, window: '1h' }
+  PER_IP: { requests: 5, window: '1h', windowMs: 60 * 60 * 1000 },
+  PER_USER: { requests: 3, window: '1h', windowMs: 60 * 60 * 1000 }
 } as const;
 
 /**
@@ -84,7 +90,7 @@ export class RateLimitService {
     Object.entries(RATE_LIMIT_CONFIGS).forEach(([tier, config]) => {
       const ratelimit = new Ratelimit({
         redis: this.redis,
-        limiter: Ratelimit.slidingWindow(config.requests, config.window),
+        limiter: Ratelimit.slidingWindow(config.requests, `${config.windowMs}ms`),
         analytics: true,
       });
       
@@ -94,13 +100,13 @@ export class RateLimitService {
     // Rate limiters spéciaux pour SMS
     this.rateLimiters.set('SMS_IP', new Ratelimit({
       redis: this.redis,
-      limiter: Ratelimit.slidingWindow(SMS_RATE_LIMITS.PER_IP.requests, SMS_RATE_LIMITS.PER_IP.window),
+      limiter: Ratelimit.slidingWindow(SMS_RATE_LIMITS.PER_IP.requests, `${SMS_RATE_LIMITS.PER_IP.windowMs}ms`),
       analytics: true,
     }));
 
     this.rateLimiters.set('SMS_USER', new Ratelimit({
       redis: this.redis,
-      limiter: Ratelimit.slidingWindow(SMS_RATE_LIMITS.PER_USER.requests, SMS_RATE_LIMITS.PER_USER.window),
+      limiter: Ratelimit.slidingWindow(SMS_RATE_LIMITS.PER_USER.requests, `${SMS_RATE_LIMITS.PER_USER.windowMs}ms`),
       analytics: true,
     }));
   }
