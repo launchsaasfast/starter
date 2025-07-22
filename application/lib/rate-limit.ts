@@ -301,10 +301,10 @@ export const rateLimitUtils = {
       }),
       {
         status: 429,
-        headers: {
-          ...Object.fromEntries(headers),
+        headers: new Headers({
+          ...Object.fromEntries(headers.entries()),
           'Content-Type': 'application/json'
-        }
+        })
       }
     );
   }
