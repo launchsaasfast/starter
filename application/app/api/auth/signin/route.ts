@@ -49,42 +49,37 @@ async function checkBruteForceAttempts(ip: string, email?: string): Promise<{
   lockoutEndsAt?: Date;
 }> {
   try {
-    const now = new Date();
-    const lookbackTime = new Date(now.getTime() - BRUTE_FORCE_CONFIG.LOCKOUT_DURATION);
-    
-    // Vérifier les tentatives récentes pour cette IP
-    const { data: ipAttempts, error } = await supabase
-      .from('security_events')
-      .select('created_at, details')
-      .eq('event_type', SecurityEventType.LOGIN_FAILED)
-      .eq('ip_address', ip)
-      .gte('created_at', lookbackTime.toISOString())
-      .order('created_at', { ascending: false })
-      .limit(10);
+    // Utiliser la fonction sécurisée pour contourner les restrictions RLS
+    const { data: bruteForceResult, error } = await supabase
+      .rpc('check_brute_force_attempts', {
+        check_ip: ip,
+        check_email: email || null,
+        lookback_minutes: Math.floor(BRUTE_FORCE_CONFIG.LOCKOUT_DURATION / (60 * 1000)),
+        max_attempts: BRUTE_FORCE_CONFIG.MAX_FAILED_ATTEMPTS
+      });
 
     if (error) {
       console.error('Erreur lors de la vérification brute force:', error);
       return { isBlocked: false, remainingAttempts: BRUTE_FORCE_CONFIG.MAX_FAILED_ATTEMPTS };
     }
 
-    const failedAttempts = ipAttempts?.length || 0;
-    const remainingAttempts = Math.max(0, BRUTE_FORCE_CONFIG.MAX_FAILED_ATTEMPTS - failedAttempts);
-
-    if (failedAttempts >= BRUTE_FORCE_CONFIG.MAX_FAILED_ATTEMPTS) {
-      // Calculer quand le blocage se termine
-      const latestAttempt = ipAttempts?.[0];
-      if (latestAttempt) {
-        const lockoutEndsAt = new Date(
-          new Date(latestAttempt.created_at).getTime() + BRUTE_FORCE_CONFIG.LOCKOUT_DURATION
-        );
-        
-        if (now < lockoutEndsAt) {
-          return { isBlocked: true, remainingAttempts: 0, lockoutEndsAt };
-        }
-      }
+    const result = bruteForceResult?.[0];
+    if (!result) {
+      return { isBlocked: false, remainingAttempts: BRUTE_FORCE_CONFIG.MAX_FAILED_ATTEMPTS };
     }
 
-    return { isBlocked: false, remainingAttempts };
+    const failedAttempts = result.failed_attempts || 0;
+    const remainingAttempts = Math.max(0, BRUTE_FORCE_CONFIG.MAX_FAILED_ATTEMPTS - failedAttempts);
+
+    if (result.is_blocked) {
+      return { 
+        isBlocked: true, 
+        remainingAttempts: result.remaining_attempts || 0, 
+        lockoutEndsAt: result.lockout_ends_at ? new Date(result.lockout_ends_at) : undefined
+      };
+    }
+
+    return { isBlocked: false, remainingAttempts: result.remaining_attempts || remainingAttempts };
   } catch (error) {
     console.error('Erreur dans checkBruteForceAttempts:', error);
     return { isBlocked: false, remainingAttempts: BRUTE_FORCE_CONFIG.MAX_FAILED_ATTEMPTS };
