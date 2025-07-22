@@ -22,7 +22,12 @@ export enum SecurityEventType {
   
   // Événements de déconnexion
   LOGOUT_SUCCESS = 'LOGOUT_SUCCESS',
-  
+
+  // Événements OAuth
+  OAUTH_ATTEMPT = 'OAUTH_ATTEMPT',
+  OAUTH_SUCCESS = 'OAUTH_SUCCESS',
+  OAUTH_FAILED = 'OAUTH_FAILED',
+
   // Événements de rate limiting
   RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
   RATE_LIMIT_WARNING = 'RATE_LIMIT_WARNING',
