@@ -16,12 +16,14 @@
     "test:validation": "npx tsx tests/validation.test.ts",
     "test:all": "npm run test:ratelimit && npm run test:middleware && npm run test:load-quick && npm run test:validation",
     "monitor": "npx tsx scripts/monitor-rate-limits.ts",
-    "monitor:report": "npx tsx scripts/monitor-rate-limits.ts --report"
+    "monitor:report": "npx tsx scripts/monitor-rate-limits.ts --report",
+    "check:security": "npx tsx scripts/check-security-setup.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.52.0",
     "@upstash/ratelimit": "^2.0.5",
     "@upstash/redis": "^1.35.1",
+    "dotenv": "^17.2.0",
     "next": "15.4.2",
     "react": "19.1.0",
     "react-dom": "19.1.0"

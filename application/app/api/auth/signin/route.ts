@@ -124,7 +124,23 @@ export async function POST(req: NextRequest) {
                     'unknown';
 
     // Vérification des tentatives de brute force
-    const bruteForceCheck = await checkBruteForceAttempts(clientIP, email);
+    // SOLUTION TEMPORAIRE: Désactivation jusqu'au déploiement de la fonction PostgreSQL
+    // TODO: Déployez sql/fix_security_permissions.sql dans Supabase puis décommentez
+    
+    let bruteForceCheck: {
+      isBlocked: boolean;
+      remainingAttempts: number;
+      lockoutEndsAt?: Date;
+    } = { isBlocked: false, remainingAttempts: 5 };
+    
+    /* TEMPORAIREMENT DÉSACTIVÉ - décommentez après déploiement SQL
+    try {
+      bruteForceCheck = await checkBruteForceAttempts(clientIP, email);
+    } catch (error) {
+      console.warn('Vérification brute force échouée (utilisation fallback):', error);
+      bruteForceCheck = { isBlocked: false, remainingAttempts: 5 };
+    }
+    */
     
     if (bruteForceCheck.isBlocked) {
       const lockoutSeconds = bruteForceCheck.lockoutEndsAt ? 

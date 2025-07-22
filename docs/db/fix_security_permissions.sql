@@ -32,7 +32,7 @@ CREATE POLICY "security_events_select_policy" ON security_events
 -- 2. Alternative: Créer une fonction sécurisée pour la vérification brute force
 -- qui contourne les restrictions RLS
 CREATE OR REPLACE FUNCTION check_brute_force_attempts(
-    check_ip inet,
+    check_ip text,
     check_email text DEFAULT NULL,
     lookback_minutes integer DEFAULT 15,
     max_attempts integer DEFAULT 5
@@ -58,7 +58,7 @@ BEGIN
     SELECT COUNT(*) INTO attempt_count
     FROM security_events
     WHERE event_type = 'LOGIN_FAILED'
-    AND ip_address = check_ip
+    AND ip_address::text = check_ip
     AND created_at >= lookback_time;
     
     -- Si un email est fourni, vérifier aussi les tentatives pour cet email
@@ -66,7 +66,7 @@ BEGIN
         SELECT COUNT(*) INTO attempt_count
         FROM security_events
         WHERE event_type = 'LOGIN_FAILED'
-        AND (ip_address = check_ip OR email = check_email)
+        AND (ip_address::text = check_ip OR email = check_email)
         AND created_at >= lookback_time;
     END IF;
     
