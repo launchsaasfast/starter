@@ -253,11 +253,23 @@ export const rateLimitUtils = {
    * Extrait l'IP de la requête
    */
   extractIP(request: Request): string {
+    // Gère différemment en dev et prod pour éviter ::1 en localhost
+    const isDev = process.env.NODE_ENV === 'development';
+    if (isDev) {
+      // Localhost : convertir ::1 vers 127.0.0.1
+      const headers = ['x-forwarded-for', 'x-real-ip'];
+      for (const header of headers) {
+        const ip = request.headers.get(header);
+        if (ip && ip !== '::1') {
+          return ip.split(',')[0];
+        }
+      }
+      return '127.0.0.1'; // Fallback en dev
+    }
     // En production, utiliser les headers des proxies/CDN
     const forwardedFor = request.headers.get('x-forwarded-for');
     const realIP = request.headers.get('x-real-ip');
     const cfIP = request.headers.get('cf-connecting-ip');
-    
     return cfIP || realIP || forwardedFor?.split(',')[0] || 'unknown';
   },
 
