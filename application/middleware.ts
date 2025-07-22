@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getRateLimitService, RateLimitTier, rateLimitUtils } from './lib/rate-limit';
+import { getRateLimitService, RateLimitTier, rateLimitUtils } from '@/lib/rate-limit';
 
 /**
  * Configuration des routes à protéger et leurs tiers de rate limiting
