@@ -7,7 +7,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "npx tsx tests/auth-security.test.ts",
+    "test:ratelimit": "npx tsx tests/rate-limit.test.ts",
+    "test:middleware": "npx tsx tests/middleware.test.ts",
+    "test:load": "npx tsx tests/load/rate-limit-stress.ts",
+    "test:load-quick": "npx tsx tests/load/rate-limit-stress.ts --quick",
+    "test:validation": "npx tsx tests/validation.test.ts",
+    "test:all": "npm run test:ratelimit && npm run test:middleware && npm run test:load-quick && npm run test:validation",
+    "monitor": "npx tsx scripts/monitor-rate-limits.ts",
+    "monitor:report": "npx tsx scripts/monitor-rate-limits.ts --report"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.52.0",
@@ -27,6 +36,8 @@
     "eslint-config-next": "15.4.2",
     "husky": "^9.1.7",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.19.2",
+    "typescript": "^5",
+    "vitest": "^2.1.8"
   }
 }
