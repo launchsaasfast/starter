@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabaseClient';
 import { securityLogger, SecurityHeaders, SecurityEventType, SecurityEventSeverity } from '@/lib/security-logger';
-import { authConfig } from '@/config/auth';
+import { authConfig } from '@/auth';
 
 const MIN_RESPONSE_TIME = 150;
 
