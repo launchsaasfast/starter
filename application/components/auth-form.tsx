@@ -14,12 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { FaGoogle, FaGithub } from "react-icons/fa";
-import { Pencil } from "lucide-react";
-import { toast } from "sonner";
 import { validatePassword, validateEmail } from "@/validation/auth-validation";
 import { Confirm } from "./auth-conf";
 import { VerifyForm } from "./verify-form";
-import { TTwoFactorMethod, TVerificationFactor } from "@/types/auth";
 import { AUTH_CONFIG } from "@/config/auth";
 import { BackButton } from "./back-button";
 import { api } from "@/utils/api";
@@ -28,7 +25,7 @@ import Link from "next/link";
 type AuthFormProps = {
   requires2fa?: boolean;
   nextUrl?: string;
-  initialMethods?: Array<{ type: TTwoFactorMethod; factorId: string }>;
+  initialMethods?: Array<{ type: string; factorId: string }>;
   initialEmail?: string | null;
 };
 
@@ -57,14 +54,14 @@ export function AuthFormAdvanced({
   const [determinedType, setDeterminedType] = useState<"login" | "signup" | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [loginData, setLoginData] = useState<{
-    availableMethods: TVerificationFactor[];
+    availableMethods: Array<{ type: string; factorId: string }>;
     redirectUrl: string;
   } | null>(
     initialTwoFactorState.requiresTwoFactor
       ? {
           availableMethods: initialTwoFactorState.availableMethods.map((m) => ({
             ...m,
-            type: m.type as TTwoFactorMethod,
+            type: m.type,
           })),
           redirectUrl: initialTwoFactorState.redirectUrl,
         }
@@ -131,7 +128,7 @@ export function AuthFormAdvanced({
         if (result.requiresTwoFactor && result.availableMethods) {
           setLoginData({
             availableMethods: result.availableMethods,
-            redirectUrl: result.redirectTo,
+            redirectUrl: result.redirectTo ?? nextUrl,
           });
           return;
         }
