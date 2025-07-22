@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getRateLimitService, RateLimitTier, rateLimitUtils } from '@/lib/rate-limit';
+import { createMiddlewareSupabaseClient } from '@supabase/auth-helpers-nextjs';
 
 /**
  * Configuration des routes à protéger et leurs tiers de rate limiting
@@ -106,6 +107,19 @@ function determineRateLimitTier(pathname: string): RateLimitTier | null {
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  // Protéger les pages settings : rediriger vers signin si non authentifié
+  if (pathname.startsWith('/settings')) {
+    const res = NextResponse.next();
+    const supabase = createMiddlewareSupabaseClient({ req: request, res });
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      // Redirection vers la page de connexion
+      return NextResponse.redirect(new URL('/auth/signin', request.url));
+    }
+    return res;
+  }
   
   // Ignorer les fichiers statiques et les routes non-API
   if (
