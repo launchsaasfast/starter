@@ -1,10 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { createSupabaseClient } from '@/lib/supabaseClient';
+
+function AuthCallbackContent() {client';
+
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClientSupabaseClient } from '@/lib/supabaseClient';
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -135,5 +141,20 @@ export default function AuthCallbackPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   );
 }
