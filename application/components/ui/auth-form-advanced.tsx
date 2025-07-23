@@ -1,18 +1,30 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { FaGoogle, FaGithub } from "react-icons/fa";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { toast } from "sonner";
 import { validatePassword, validateEmail } from "@/validation/auth-validation";
 import { AUTH_CONFIG } from "@/config/auth";
 import { api } from "@/utils/api";
