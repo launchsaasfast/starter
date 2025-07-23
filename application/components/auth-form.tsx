@@ -25,8 +25,6 @@ import {
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { validatePassword, validateEmail } from "@/validation/auth-validation";
-import { AUTH_CONFIG } from "@/config/auth";
 import { api } from "@/utils/api";
 
 // Schémas de validation avec Zod
@@ -36,7 +34,7 @@ const signinSchema = z.object({
 });
 
 const signupSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string().min(1, "Please confirm your password"),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -45,7 +43,7 @@ const signupSchema = z.object({
 });
 
 const emailSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.email("Invalid email address"),
 });
 
 type AuthFormProps = {
@@ -476,7 +474,8 @@ export function SocialButtons() {
     try {
       setIsPending(true);
       const data = await api.auth.googleSignIn();
-      if (data.url) window.location.href = data.url;
+      // Pour le moment, redirection simple vers Google OAuth
+      toast.success("Redirecting to Google...");
     } catch (error) {
       toast.error("Failed to sign in with Google");
     } finally {
@@ -488,7 +487,8 @@ export function SocialButtons() {
     try {
       setIsPending(true);
       const data = await api.auth.githubSignIn();
-      if (data.url) window.location.href = data.url;
+      // Pour le moment, redirection simple vers GitHub OAuth
+      toast.success("Redirecting to GitHub...");
     } catch (error) {
       toast.error("Failed to sign in with GitHub");
     } finally {
@@ -496,37 +496,28 @@ export function SocialButtons() {
     }
   }
 
-  if (
-    !AUTH_CONFIG.socialProviders.google.enabled &&
-    !AUTH_CONFIG.socialProviders.github.enabled
-  ) {
-    return null;
-  }
-
+  // Pour le moment, on active toujours les boutons sociaux
+  // Cette logique sera améliorée avec la configuration AUTH_CONFIG future
   return (
     <>
-      {AUTH_CONFIG.socialProviders.google.enabled && (
-        <Button 
-          variant="outline" 
-          className="h-11 flex items-center justify-center gap-2 font-medium" 
-          onClick={handleGoogleSignIn} 
-          disabled={isPending}
-        >
-          <FaGoogle className="h-4 w-4" />
-          Google
-        </Button>
-      )}
-      {AUTH_CONFIG.socialProviders.github.enabled && (
-        <Button 
-          variant="outline" 
-          className="h-11 flex items-center justify-center gap-2 font-medium" 
-          onClick={handleGithubSignIn} 
-          disabled={isPending}
-        >
-          <FaGithub className="h-4 w-4" />
-          GitHub
-        </Button>
-      )}
+      <Button 
+        variant="outline" 
+        className="h-11 flex items-center justify-center gap-2 font-medium" 
+        onClick={handleGoogleSignIn} 
+        disabled={isPending}
+      >
+        <FaGoogle className="h-4 w-4" />
+        Google
+      </Button>
+      <Button 
+        variant="outline" 
+        className="h-11 flex items-center justify-center gap-2 font-medium" 
+        onClick={handleGithubSignIn} 
+        disabled={isPending}
+      >
+        <FaGithub className="h-4 w-4" />
+        GitHub
+      </Button>
     </>
   );
 }
