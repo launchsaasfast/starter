@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClientSupabaseClient } from '@/lib/supabaseClient';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [password, setPassword] = useState('');
@@ -302,5 +302,17 @@ export default function ResetPasswordPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
