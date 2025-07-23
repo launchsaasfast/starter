@@ -159,7 +159,7 @@ export function TwoFactorInput({
                 <div className="space-y-1">
                   <p>• Backup codes are 8-character codes you saved when setting up 2FA</p>
                   <p>• Each backup code can only be used once</p>
-                  <p>• They're typically in format: ABC1-DEF2</p>
+                  <p>• They&apos;re typically in format: ABC1-DEF2</p>
                 </div>
               ) : (
                 <div className="space-y-1">

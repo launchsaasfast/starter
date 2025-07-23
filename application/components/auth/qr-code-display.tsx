@@ -15,7 +15,7 @@ interface QRCodeDisplayProps {
   email: string;
 }
 
-export function QRCodeDisplay({ secret, qrCodeUrl, email }: QRCodeDisplayProps) {
+export function QRCodeDisplay({ secret, email }: QRCodeDisplayProps) {
   const [copied, setCopied] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
 
@@ -25,7 +25,7 @@ export function QRCodeDisplay({ secret, qrCodeUrl, email }: QRCodeDisplayProps) 
       setCopied(true);
       toast.success("Secret copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
+    } catch {
       toast.error("Failed to copy secret");
     }
   };
@@ -101,7 +101,7 @@ export function QRCodeDisplay({ secret, qrCodeUrl, email }: QRCodeDisplayProps) 
           </div>
           
           <p className="text-xs text-gray-600 text-center max-w-xs">
-            Can't scan? Use the manual setup key below instead
+            Can&apos;t scan? Use the manual setup key below instead
           </p>
         </CardContent>
       </Card>
@@ -111,7 +111,7 @@ export function QRCodeDisplay({ secret, qrCodeUrl, email }: QRCodeDisplayProps) 
         <CardHeader>
           <CardTitle className="text-lg">Manual Setup</CardTitle>
           <CardDescription>
-            Enter this key manually if you can't scan the QR code
+            Enter this key manually if you can&apos;t scan the QR code
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

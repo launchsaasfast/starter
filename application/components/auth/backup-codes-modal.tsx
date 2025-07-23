@@ -62,7 +62,7 @@ Instructions:
       setCopied(true);
       toast.success("Backup codes copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
+    } catch {
       toast.error("Failed to copy backup codes");
     }
   };
@@ -84,7 +84,7 @@ Instructions:
             Save Your Backup Codes
           </DialogTitle>
           <DialogDescription>
-            Store these codes safely. You'll need them if you lose access to your authenticator app.
+            Store these codes safely. You&apos;ll need them if you lose access to your authenticator app.
           </DialogDescription>
         </DialogHeader>
 
@@ -99,7 +99,7 @@ Instructions:
                   <ul className="text-sm text-red-800 space-y-1">
                     <li>• Each code can only be used once</li>
                     <li>• Store them in a secure, accessible location</li>
-                    <li>• Don't share these codes with anyone</li>
+                    <li>• Don&apos;t share these codes with anyone</li>
                     <li>• Generate new codes if you run out</li>
                   </ul>
                 </div>
@@ -187,7 +187,7 @@ Instructions:
                     I have saved my backup codes in a secure location
                   </label>
                   <p className="text-xs text-blue-700">
-                    You won't be able to see these codes again after closing this dialog.
+                    You won&apos;t be able to see these codes again after closing this dialog.
                   </p>
                 </div>
               </div>
@@ -209,7 +209,7 @@ Instructions:
             disabled={!hasConfirmed}
             className="bg-green-600 hover:bg-green-700"
           >
-            I've Saved My Codes
+            I&apos;ve Saved My Codes
           </Button>
         </DialogFooter>
       </DialogContent>
