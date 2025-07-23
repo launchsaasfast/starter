@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import { validatePassword, validateEmail } from "@/validation/auth-validation";
 import { Confirm } from "./auth-conf";
-import { VerifyForm } from "./verify-form";
 import { AUTH_CONFIG } from "@/config/auth";
 import { BackButton } from "./back-button";
 import { api } from "@/utils/api";
@@ -193,12 +192,7 @@ export function AuthFormAdvanced({
           {!loginData && !showPasswordField && <SocialButtons />} 
         </CardHeader>
         <CardContent>
-          {loginData ? (
-            <VerifyForm
-              availableMethods={loginData.availableMethods}
-              onVerifyComplete={handleVerifyComplete}
-            />
-          ) : (
+          {!loginData && (
             <form
               onSubmit={async (e) => {
                 e.preventDefault();

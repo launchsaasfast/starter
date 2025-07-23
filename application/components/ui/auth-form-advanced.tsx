@@ -1,6 +1,5 @@
 "use client";
-import { Suspense } from "react";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -14,61 +13,31 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { FaGoogle, FaGithub } from "react-icons/fa";
-import { Pencil } from "lucide-react";
-import { toast } from "sonner";
 import { validatePassword, validateEmail } from "@/validation/auth-validation";
-import { Confirm } from "./auth-confirm";
-import { VerifyForm } from "./verify-form";
-import { TTwoFactorMethod, TVerificationFactor } from "@/types/auth";
 import { AUTH_CONFIG } from "@/config/auth";
-import { BackButton } from "./back-button";
 import { api } from "@/utils/api";
-import Link from "next/link";
 
 type AuthFormProps = {
-  requires2fa?: boolean;
+  mode?: "signin" | "signup" | "auto"; // auto = détection automatique
   nextUrl?: string;
-  initialMethods?: Array<{ type: TTwoFactorMethod; factorId: string }>;
   initialEmail?: string | null;
 };
 
 export function AuthFormAdvanced({
-  requires2fa = false,
+  mode = "auto",
   nextUrl = "/dashboard",
-  initialMethods = [],
   initialEmail = null,
 }: AuthFormProps) {
   const router = useRouter();
 
-  const initialTwoFactorState = useMemo(() => {
-    return {
-      requiresTwoFactor: requires2fa,
-      redirectUrl: nextUrl,
-      availableMethods: initialMethods,
-    };
-  }, [requires2fa, nextUrl, initialMethods]);
-
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState(initialEmail || "");
   const [formError, setFormError] = useState<string | null>(null);
-  const [showConfirm, setShowConfirm] = useState(false);
   const [isPending, setIsPending] = useState(false);
-  const [showPasswordField, setShowPasswordField] = useState(false);
-  const [determinedType, setDeterminedType] = useState<"login" | "signup" | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [loginData, setLoginData] = useState<{
-    availableMethods: TVerificationFactor[];
-    redirectUrl: string;
-  } | null>(
-    initialTwoFactorState.requiresTwoFactor
-      ? {
-          availableMethods: initialTwoFactorState.availableMethods.map((m) => ({
-            ...m,
-            type: m.type as TTwoFactorMethod,
-          })),
-          redirectUrl: initialTwoFactorState.redirectUrl,
-        }
-      : null
+  const [showPasswordField, setShowPasswordField] = useState(mode !== "auto");
+  const [determinedType, setDeterminedType] = useState<"login" | "signup" | null>(
+    mode === "auto" ? null : mode === "signin" ? "login" : "signup"
   );
 
   async function handleEmailCheck(email: string) {
@@ -89,7 +58,8 @@ export function AuthFormAdvanced({
   async function handleSubmit(formData: FormData) {
     const emailValue = formData.get("email") as string;
 
-    if (!showPasswordField) {
+    // En mode auto, on doit d'abord vérifier l'email
+    if (mode === "auto" && !showPasswordField) {
       const emailValidation = validateEmail(emailValue);
       if (!emailValidation.isValid) {
         setFormError(emailValidation.error || "Invalid email");
@@ -111,6 +81,14 @@ export function AuthFormAdvanced({
         return;
       }
     } else {
+      if (!email || !password) {
+        setFormError("Please enter your email and password");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setFormError("Passwords do not match");
+        return;
+      }
       const passwordValidation = validatePassword(password);
       const emailValidation = validateEmail(email);
       if (!passwordValidation.isValid || !emailValidation.isValid) {
@@ -127,17 +105,12 @@ export function AuthFormAdvanced({
 
       if (determinedType === "login") {
         const result = await api.auth.login({ email, password });
-        if (!result) return;
-        if (result.requiresTwoFactor && result.availableMethods) {
-          setLoginData({
-            availableMethods: result.availableMethods,
-            redirectUrl: result.redirectTo,
-          });
-          return;
+        if (result) {
+          router.push(nextUrl);
         }
       } else {
         await api.auth.signup({ email, password });
-        setShowConfirm(true);
+        router.push(nextUrl);
       }
     } catch (error) {
       setFormError(
@@ -148,84 +121,141 @@ export function AuthFormAdvanced({
     }
   }
 
-  async function handleVerifyComplete() {
-    if (loginData?.redirectUrl) {
-      router.push(loginData.redirectUrl);
-    }
-  }
-
   function handleBack() {
+    if (mode !== "auto") {
+      router.back();
+      return;
+    }
+
     if (!showPasswordField) {
       router.back();
       return;
     }
 
     setPassword("");
+    setConfirmPassword("");
     setShowPasswordField(false);
     setDeterminedType(null);
     setFormError(null);
   }
 
+  // Fonction pour obtenir les titres selon le mode
+  const getTitle = () => {
+    if (mode === "signin") return "Welcome back";
+    if (mode === "signup") return "Create your account";
+    if (showPasswordField) {
+      return determinedType === "login" ? "Welcome back" : "Create your account";
+    }
+    return "Sign up or log in";
+  };
+
+  const getDescription = () => {
+    if (mode === "signin") return "Enter your credentials to sign in";
+    if (mode === "signup") return "Create a password to get started";
+    if (showPasswordField) {
+      return determinedType === "login" 
+        ? "Enter your password to continue" 
+        : "Create a password to get started";
+    }
+    return "Enter your email to continue";
+  };
+
   return (
-    <>
-      <div className="absolute top-0 left-0 p-4">
-        <BackButton onClick={handleBack} />
-      </div>
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center flex flex-col gap-2">
-          <div className="flex flex-col gap-1">
-            <CardTitle className="text-2xl font-bold">
-              {loginData
-                ? "Two-factor authentication"
-                : showPasswordField
-                  ? determinedType === "login"
-                    ? "Welcome back"
-                    : "Create your account"
-                  : "Sign up or log in"}
-            </CardTitle>
-            <CardDescription className="text-foreground/35">
-              {loginData
-                ? "Please verify your identity to continue"
-                : showPasswordField
-                  ? determinedType === "login"
-                    ? "Enter your password to continue"
-                    : "Create a password to get started"
-                  : "Enter your email to continue"}
-            </CardDescription>
-          </div>
-          {!loginData && !showPasswordField && <SocialButtons />} 
-        </CardHeader>
-        <CardContent>
-          {loginData ? (
-            <VerifyForm
-              availableMethods={loginData.availableMethods}
-              onVerifyComplete={handleVerifyComplete}
+    <Card className="w-full max-w-md">
+      <CardHeader className="text-center flex flex-col gap-2">
+        <div className="flex flex-col gap-1">
+          <CardTitle className="text-2xl font-bold">
+            {getTitle()}
+          </CardTitle>
+          <CardDescription className="text-foreground/35">
+            {getDescription()}
+          </CardDescription>
+        </div>
+        {(!showPasswordField || mode !== "auto") && <SocialButtons />} 
+      </CardHeader>
+      <CardContent>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            await handleSubmit(formData);
+          }}
+          className="flex flex-col gap-5"
+        >
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={(showPasswordField && mode === "auto") || isPending}
+              required
             />
-          ) : (
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                await handleSubmit(formData);
-              }}
-              className="flex flex-col gap-5"
-            >
-              {/* form fields... */}
-            </form>
+          </div>
+
+          {showPasswordField && (
+            <>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isPending}
+                  required
+                />
+              </div>
+
+              {(determinedType === "signup" || mode === "signup") && (
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isPending}
+                    required
+                  />
+                </div>
+              )}
+            </>
           )}
-        </CardContent>
-        {!loginData && showPasswordField && (
-          <CardFooter className="flex flex-col gap-2 border-t p-5">
-            {/* footer buttons... */}
-          </CardFooter>
-        )}
-      </Card>
-      <Confirm
-        email={email}
-        show={showConfirm}
-        onClose={() => setShowConfirm(false)}
-      />
-    </>
+
+          {formError && (
+            <div className="text-red-500 text-sm text-center">{formError}</div>
+          )}
+
+          <Button type="submit" disabled={isPending} className="w-full">
+            {isPending ? "Loading..." : 
+              mode === "signin" ? "Sign In" :
+              mode === "signup" ? "Create Account" :
+              showPasswordField 
+                ? determinedType === "login" 
+                  ? "Sign In" 
+                  : "Create Account"
+                : "Continue"}
+          </Button>
+
+          {(showPasswordField && mode === "auto") && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleBack}
+              disabled={isPending}
+              className="w-full"
+            >
+              Back
+            </Button>
+          )}
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
