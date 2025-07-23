@@ -177,7 +177,7 @@ Instructions:
                 <Checkbox
                   id="confirm-saved"
                   checked={hasConfirmed}
-                  onCheckedChange={setHasConfirmed}
+                  onCheckedChange={(checked) => setHasConfirmed(checked === true)}
                 />
                 <div className="space-y-1">
                   <label 
