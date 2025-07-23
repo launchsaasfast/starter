@@ -25,7 +25,7 @@ import {
 import { FaGoogle, FaGithub } from "react-icons/fa";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { api } from "@/utils/api";
+import { api } from "@/lib/api";
 
 // Schémas de validation avec Zod
 const signinSchema = z.object({

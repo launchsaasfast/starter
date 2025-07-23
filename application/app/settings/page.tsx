@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/form';
 import { Mail, User, Shield, Lock, Settings as SettingsIcon } from 'lucide-react';
 import { toast } from 'sonner';
-import { api } from '@/utils/api';
+import { api } from '@/lib/api';
 
 // Schema de validation pour le changement d'email
 const changeEmailSchema = z.object({

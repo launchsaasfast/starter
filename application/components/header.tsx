@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { UserButton } from "@/components/user-button";
-import { api } from "@/utils/api";
+import { api } from "@/lib/api";
 
 export function Header() {
   const [user, setUser] = useState<{ email: string; name?: string; avatar?: string } | null>(null);
