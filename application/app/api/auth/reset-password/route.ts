@@ -59,6 +59,9 @@ export async function POST(req: NextRequest) {
       return await ensureMinimumResponseTime(Promise.resolve(response), startTime);
     }
 
+    // Créer le client Supabase server
+    const supabase = await createServerSupabaseClient();
+
     // Set session with tokens
     const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
       access_token,
