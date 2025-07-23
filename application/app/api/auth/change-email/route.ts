@@ -75,8 +75,6 @@ export async function POST(req: NextRequest) {
     // 5. Update user email
     const { error: updateError } = await supabase.auth.updateUser({ 
       email: newEmail 
-    }, {
-      emailRedirectTo: AUTH_CONFIG.supabase.redirectTo.emailChange
     });
     if (updateError) {
       await securityLogger.logSecurityEvent(

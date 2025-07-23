@@ -1,26 +1,31 @@
 # Configuration des Redirections Supabase
 
-## URLs de redirection à configurer dans votre dashboard Supabase
+## Configuration critique dans le Dashboard Supabase
+
+**IMPORTANT** : Vous DEVEZ configurer ces URLs dans votre dashboard Supabase pour que les redirections fonctionnent.
 
 1. **Allez dans votre dashboard Supabase** : https://supabase.com/dashboard/project/fxwlqjnkvydztcgpvnwa
 
 2. **Allez dans Authentication > URL Configuration**
 
-3. **Ajoutez ces URLs dans "Redirect URLs"** :
+3. **Dans "Site URL"**, mettez votre URL de base** :
+   ```
+   http://localhost:3000
+   ```
+
+4. **Dans "Redirect URLs"**, ajoutez TOUTES ces URLs** :
    ```
    http://localhost:3000/auth/callback
    http://localhost:3000/auth/verify
    http://localhost:3000/auth/reset-password
-   https://votre-domaine.com/auth/callback
-   https://votre-domaine.com/auth/verify
-   https://votre-domaine.com/auth/reset-password
+   http://localhost:3000/**
    ```
-
-4. **Dans "Site URL"**, mettez votre URL de base** :
-   ```
-   http://localhost:3000
-   https://votre-domaine.com
-   ```
+   
+5. **Dans "Email Templates"**, vérifiez que les templates utilisent les bonnes URLs** :
+   - **Confirm signup** : `{{ .SiteURL }}/auth/verify?token={{ .Token }}&type=signup`
+   - **Magic Link** : `{{ .SiteURL }}/auth/verify?token={{ .Token }}&type=magiclink`
+   - **Change Email Address** : `{{ .SiteURL }}/auth/verify?token={{ .Token }}&type=email_change`
+   - **Reset Password** : `{{ .SiteURL }}/auth/reset-password?token={{ .Token }}&type=recovery`
 
 ## Variables d'environnement requises
 
