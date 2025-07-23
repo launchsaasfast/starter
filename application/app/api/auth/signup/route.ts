@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { 
   securityLogger, 
@@ -8,6 +7,7 @@ import {
   SecurityEventType,
   SecurityEventSeverity 
 } from '@/lib/security-logger';
+import { createServerSupabaseClient } from '@/lib/supabaseClient';
 
 /**
  * Délai minimum pour les réponses (prévention des attaques de timing)
@@ -37,9 +37,8 @@ export async function POST(req: NextRequest) {
   let email: string = '';
   
   try {
-    // Initialisation du client Supabase avec cookies
-    const cookieStore = cookies();
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    // Initialisation du client Supabase avec la nouvelle API SSR
+    const supabase = await createServerSupabaseClient();
     
     // Validation des données d'entrée
     const body = await req.json();
