@@ -41,52 +41,6 @@ async function ensureMinimumResponseTime<T>(
   return result;
 }
 
-/**
- * Vérifie les tentatives de connexion récentes pour détecter le brute force
- */
-async function checkBruteForceAttempts(ip: string, email?: string): Promise<{
-  isBlocked: boolean;
-  remainingAttempts: number;
-  lockoutEndsAt?: Date;
-}> {
-  try {
-    // Utiliser la fonction sécurisée pour contourner les restrictions RLS
-    const { data: bruteForceResult, error } = await supabase
-      .rpc('check_brute_force_attempts', {
-        check_ip: ip,
-        check_email: email || null,
-        lookback_minutes: Math.floor(BRUTE_FORCE_CONFIG.LOCKOUT_DURATION / (60 * 1000)),
-        max_attempts: BRUTE_FORCE_CONFIG.MAX_FAILED_ATTEMPTS
-      });
-
-    if (error) {
-      console.error('Erreur lors de la vérification brute force:', error);
-      return { isBlocked: false, remainingAttempts: BRUTE_FORCE_CONFIG.MAX_FAILED_ATTEMPTS };
-    }
-
-    const result = bruteForceResult?.[0];
-    if (!result) {
-      return { isBlocked: false, remainingAttempts: BRUTE_FORCE_CONFIG.MAX_FAILED_ATTEMPTS };
-    }
-
-    const failedAttempts = result.failed_attempts || 0;
-    const remainingAttempts = Math.max(0, BRUTE_FORCE_CONFIG.MAX_FAILED_ATTEMPTS - failedAttempts);
-
-    if (result.is_blocked) {
-      return { 
-        isBlocked: true, 
-        remainingAttempts: result.remaining_attempts || 0, 
-        lockoutEndsAt: result.lockout_ends_at ? new Date(result.lockout_ends_at) : undefined
-      };
-    }
-
-    return { isBlocked: false, remainingAttempts: result.remaining_attempts || remainingAttempts };
-  } catch (error) {
-    console.error('Erreur dans checkBruteForceAttempts:', error);
-    return { isBlocked: false, remainingAttempts: BRUTE_FORCE_CONFIG.MAX_FAILED_ATTEMPTS };
-  }
-}
-
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
   let email: string = '';
