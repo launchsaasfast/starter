@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+// import { cookies } from 'next/headers';
 import { 
   securityLogger, 
   SecurityMessages, 
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
     // SOLUTION TEMPORAIRE: Désactivation jusqu'au déploiement de la fonction PostgreSQL
     // TODO: Déployez sql/fix_security_permissions.sql dans Supabase puis décommentez
     
-    let bruteForceCheck: {
+    const bruteForceCheck: {
       isBlocked: boolean;
       remainingAttempts: number;
       lockoutEndsAt?: Date;

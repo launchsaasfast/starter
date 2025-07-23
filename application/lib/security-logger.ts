@@ -64,7 +64,7 @@ export interface SecurityEvent {
   user_agent?: string;
   user_id?: string;
   email?: string;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -88,7 +88,7 @@ class SecurityLogger {
     type: SecurityEventType,
     severity: SecurityEventSeverity,
     request: Request,
-    details: Record<string, any> = {},
+    details: Record<string, unknown> = {},
     userId?: string,
     email?: string
   ): Promise<void> {
@@ -249,7 +249,7 @@ class SecurityLogger {
   async logSuspiciousActivity(
     request: Request,
     activityType: string,
-    details: Record<string, any>,
+    details: Record<string, unknown>,
     userId?: string
   ): Promise<void> {
     await this.logSecurityEvent(

@@ -89,7 +89,7 @@ export default function VerifyPage() {
                 setMessage('Votre email a été mis à jour avec succès !');
                 setTimeout(() => router.push('/settings/email-success'), 2000);
               }
-            } catch (err) {
+            } catch {
               setStatus('error');
               setMessage('Erreur lors de la vérification email');
             }

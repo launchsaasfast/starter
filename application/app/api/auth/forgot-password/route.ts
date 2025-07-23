@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabaseClient';
-import { AUTH_CONFIG } from '@/auth';
+// import { createServerSupabaseClient } from '@/lib/supabaseClient';
 import {
   securityLogger,
   SecurityEventType,
@@ -33,7 +32,7 @@ export async function POST(req: NextRequest) {
   let email = '';
   try {
     // Créer le client Supabase avec SSR
-    const supabase = await createServerSupabaseClient();
+    // const supabase = await createServerSupabaseClient();
     
     const body = await req.json();
     if (!body.email) {
