@@ -38,70 +38,36 @@ export default function ResetPasswordPage() {
 
       console.log('Reset password params:', { token, code, type, accessToken, refreshToken });
 
+      // Si on a un token de récupération direct
       if (token && type === 'recovery') {
-        // Nouveau format de token de récupération
-        try {
-          const supabase = createClientSupabaseClient();
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: token,
-            type: 'recovery'
-          });
-          
-          if (!error) {
-            setTokenValid(true);
-          } else {
-            console.error('Recovery token verification error:', error);
-            setError('Token de récupération invalide ou expiré: ' + error.message);
-          }
-        } catch (err) {
-          console.error('Token verification error:', err);
-          setError('Erreur lors de la vérification du token');
-        }
-      } else if (code) {
-        // Format avec code (peut-être de Supabase)
-        try {
-          const supabase = createClientSupabaseClient();
-          
-          // Essayer de récupérer la session avec le code
-          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-          
-          if (!error && data.session) {
-            setTokenValid(true);
-            console.log('Code exchange successful');
-          } else {
-            console.error('Code exchange error:', error);
-            // Essayer comme token de récupération
-            const { error: recoveryError } = await supabase.auth.verifyOtp({
-              token_hash: code,
-              type: 'recovery'
-            });
-            
-            if (!recoveryError) {
-              setTokenValid(true);
-            } else {
-              setError('Code de récupération invalide: ' + (error?.message || recoveryError.message));
-            }
-          }
-        } catch (err) {
-          console.error('Code verification error:', err);
-          setError('Erreur lors de la vérification du code');
-        }
-      } else if (accessToken) {
-        // Ancien format avec access_token
         setTokenValid(true);
-      } else {
-        setError('Token de récupération manquant. Paramètres trouvés: ' + JSON.stringify({
-          token: !!token,
-          code: !!code,
-          type,
-          accessToken: !!accessToken,
-          allParams: Object.fromEntries(searchParams.entries())
-        }));
+        return;
       }
+
+      // Si on a un code (format pkce), on l'accepte aussi
+      if (code) {
+        setTokenValid(true);
+        return;
+      }
+
+      // Si on a access_token (ancien format)
+      if (accessToken) {
+        setTokenValid(true);
+        return;
+      }
+
+      // Sinon on affiche une erreur avec debug info
+      setError('Token de récupération manquant. Paramètres reçus: ' + JSON.stringify({
+        token: !!token,
+        code: !!code,
+        type,
+        accessToken: !!accessToken,
+        allParams: Object.fromEntries(searchParams.entries())
+      }));
     }
 
     verifyToken();
-  }, [token, type, accessToken, searchParams]);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
