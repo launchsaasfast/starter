@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, Mail, ArrowRight } from 'lucide-react'
 
-export default function EmailChangeConfirmationPage() {
+function EmailChangeConfirmationContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [message, setMessage] = useState('')
@@ -94,5 +94,24 @@ export default function EmailChangeConfirmationPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function EmailChangeConfirmationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center py-12">
+        <div className="max-w-lg mx-auto px-4">
+          <Card className="bg-white/95 backdrop-blur-sm">
+            <CardContent className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p className="text-gray-600">Chargement...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    }>
+      <EmailChangeConfirmationContent />
+    </Suspense>
   )
 }

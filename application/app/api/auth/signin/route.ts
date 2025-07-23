@@ -7,7 +7,7 @@ import {
   SecurityEventType,
   SecurityEventSeverity 
 } from '@/lib/security-logger';
-import { createServerSupabaseClient, supabase } from '@/lib/supabaseClient';
+import { createServerSupabaseClient } from '@/lib/supabaseClient';
 
 /**
  * Délai minimum pour les réponses (prévention des attaques de timing)
