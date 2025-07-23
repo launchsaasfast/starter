@@ -32,7 +32,7 @@ export default function SettingsPage() {
       try {
         const userData = await api.user.getProfile();
         setUser(userData);
-      } catch (error) {
+      } catch {
         toast.error('Erreur lors du chargement du profil');
         router.push('/auth/signin');
       } finally {
@@ -48,7 +48,7 @@ export default function SettingsPage() {
       await api.auth.logout();
       toast.success('Déconnexion réussie');
       router.push('/');
-    } catch (error) {
+    } catch {
       toast.error('Erreur lors de la déconnexion');
     }
   }

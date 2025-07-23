@@ -7,7 +7,7 @@ export default function ForgotPasswordPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  // const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +26,7 @@ export default function ForgotPasswordPage() {
       } else {
         setError(data.error || 'Erreur envoi email');
       }
-    } catch (err) {
+    } catch {
       setError('Erreur réseau. Réessayez.');
     } finally {
       setLoading(false);

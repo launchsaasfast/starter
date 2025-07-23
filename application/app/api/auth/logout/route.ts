@@ -3,7 +3,6 @@ import { createServerSupabaseClient } from '@/lib/supabaseClient';
 import { 
   securityLogger, 
   SecurityHeaders,
-  SecurityMessages,
   SecurityEventType,
   SecurityEventSeverity 
 } from '@/lib/security-logger';

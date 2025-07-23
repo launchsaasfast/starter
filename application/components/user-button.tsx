@@ -33,7 +33,13 @@ export function UserButton({ user }: UserButtonProps) {
       router.push("/");
       router.refresh();
     } catch (error) {
-      toast.error("Erreur lors de la déconnexion");
+      toast.error(
+        `Erreur lors de la déconnexion ${
+          typeof error === "object" && error !== null && "message" in error
+            ? (error as { message?: string }).message
+            : "Veuillez réessayer."
+        }`
+      );
     }
   };
 

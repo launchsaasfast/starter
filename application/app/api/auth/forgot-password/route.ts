@@ -68,9 +68,9 @@ export async function POST(req: NextRequest) {
       { email: email.substring(0, 3) + '***' }
     );
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: AUTH_CONFIG.supabase.redirectTo.passwordRecovery
-    });
+    // const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    //   redirectTo: AUTH_CONFIG.supabase.redirectTo.passwordRecovery
+    // });
 
     await securityLogger.logSecurityEvent(
       SecurityEventType.PASSWORD_RESET_SUCCESS,

@@ -15,7 +15,7 @@ export function Header() {
       try {
         const userData = await api.user.getProfile();
         setUser(userData);
-      } catch (error) {
+      } catch {
         // User not authenticated
         setUser(null);
       } finally {

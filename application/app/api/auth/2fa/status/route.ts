@@ -5,7 +5,7 @@ import { createServerSupabaseClient } from '@/lib/supabaseClient';
  * GET /api/auth/2fa/status
  * Get current MFA status for the authenticated user
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Get authenticated user
     const supabase = await createServerSupabaseClient();

@@ -59,7 +59,7 @@ export default function ChangeEmailPage() {
         setStep('waiting-old')
         setMessage('Un email de confirmation a été envoyé à votre ancienne adresse email pour confirmer le changement.')
       }
-    } catch (error) {
+    } catch {
       setError('Une erreur inattendue s\'est produite')
     } finally {
       setLoading(false)
@@ -177,7 +177,7 @@ export default function ChangeEmailPage() {
           <CardHeader>
             <CardTitle>Changer mon adresse email</CardTitle>
             <CardDescription>
-              Modifiez l'adresse email associée à votre compte
+              Modifiez l&apos;adresse email associée à votre compte
             </CardDescription>
           </CardHeader>
 

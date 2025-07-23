@@ -60,11 +60,11 @@ export default function EmailChangeConfirmationPage() {
                 </div>
 
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-2">🔄 Processus de changement d'email :</h4>
+                  <h4 className="font-medium text-gray-900 mb-2">🔄 Processus de changement d&apos;email :</h4>
                   <ol className="text-sm text-gray-700 space-y-1">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="line-through">Confirmer depuis l'ancien email</span>
+                      <span className="line-through">Confirmer depuis l&apos;ancien email</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <ArrowRight className="h-4 w-4 text-blue-500" />
@@ -81,7 +81,7 @@ export default function EmailChangeConfirmationPage() {
                 onClick={() => router.push('/settings/change-email')}
                 className="flex-1"
               >
-                Retour au changement d'email
+                Retour au changement d&apos;email
               </Button>
               <Button 
                 onClick={() => router.push('/settings')}

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -473,10 +473,10 @@ export function SocialButtons() {
   async function handleGoogleSignIn() {
     try {
       setIsPending(true);
-      const data = await api.auth.googleSignIn();
+      // const data = await api.auth.googleSignIn();
       // Pour le moment, redirection simple vers Google OAuth
       toast.success("Redirecting to Google...");
-    } catch (error) {
+    } catch {
       toast.error("Failed to sign in with Google");
     } finally {
       setIsPending(false);
@@ -486,10 +486,10 @@ export function SocialButtons() {
   async function handleGithubSignIn() {
     try {
       setIsPending(true);
-      const data = await api.auth.githubSignIn();
+      // const data = await api.auth.githubSignIn();
       // Pour le moment, redirection simple vers GitHub OAuth
       toast.success("Redirecting to GitHub...");
-    } catch (error) {
+    } catch {
       toast.error("Failed to sign in with GitHub");
     } finally {
       setIsPending(false);
