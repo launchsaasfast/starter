@@ -24,12 +24,19 @@ export default function VerifyPage() {
 
       console.log('Verification params:', { token, code, type, access_token, refresh_token });
 
-      // Vérifier qu'on a au moins un token
+      // Vérifier qu'on a au moins un token ou code
       const verificationToken = token || code;
       
       if (!verificationToken && !access_token) {
         setStatus('error');
-        setMessage('Token de vérification manquant');
+        setMessage('Token de vérification manquant. Paramètres reçus: ' + JSON.stringify({
+          token: !!token,
+          code: !!code,
+          type,
+          access_token: !!access_token,
+          refresh_token: !!refresh_token,
+          allParams: Object.fromEntries(searchParams.entries())
+        }));
         return;
       }
 
@@ -54,10 +61,43 @@ export default function VerifyPage() {
         }
         else if (verificationToken) {
           // Nouveau format avec code ou token
-          if (type === 'signup' || type === 'email_change') {
+          if (type === 'email_change') {
+            // Pour le changement d'email, essayer les deux méthodes
+            try {
+              const { error } = await supabase.auth.verifyOtp({
+                token_hash: verificationToken,
+                type: 'email_change'
+              });
+
+              if (error) {
+                // Si ça échoue, essayer comme token de signup
+                const { error: signupError } = await supabase.auth.verifyOtp({
+                  token_hash: verificationToken,
+                  type: 'signup'
+                });
+
+                if (signupError) {
+                  setStatus('error');
+                  setMessage('Erreur lors de la vérification email : ' + (error.message || signupError.message));
+                } else {
+                  setStatus('success');
+                  setMessage('Votre email a été mis à jour avec succès !');
+                  setTimeout(() => router.push('/settings'), 2000);
+                }
+              } else {
+                setStatus('success');
+                setMessage('Votre email a été mis à jour avec succès !');
+                setTimeout(() => router.push('/settings'), 2000);
+              }
+            } catch (err) {
+              setStatus('error');
+              setMessage('Erreur lors de la vérification email');
+            }
+          }
+          else if (type === 'signup') {
             const { error } = await supabase.auth.verifyOtp({
               token_hash: verificationToken,
-              type: type as 'signup' | 'email_change'
+              type: 'signup'
             });
 
             if (error) {
@@ -65,21 +105,32 @@ export default function VerifyPage() {
               setMessage('Erreur lors de la vérification : ' + error.message);
             } else {
               setStatus('success');
-              setMessage(type === 'signup' 
-                ? 'Votre compte a été vérifié avec succès !' 
-                : 'Votre email a été mis à jour avec succès !');
+              setMessage('Votre compte a été vérifié avec succès !');
               setTimeout(() => router.push('/settings'), 2000);
             }
-          } else {
-            // Essayer une vérification générique
+          }
+          else {
+            // Essayer une vérification générique (signup par défaut)
             const { error } = await supabase.auth.verifyOtp({
               token_hash: verificationToken,
-              type: 'signup' // Par défaut signup
+              type: 'signup'
             });
 
             if (error) {
-              setStatus('error');
-              setMessage('Erreur lors de la vérification : ' + error.message);
+              // Si ça échoue, essayer email_change
+              const { error: emailError } = await supabase.auth.verifyOtp({
+                token_hash: verificationToken,
+                type: 'email_change'
+              });
+
+              if (emailError) {
+                setStatus('error');
+                setMessage('Erreur lors de la vérification : ' + (error.message || emailError.message));
+              } else {
+                setStatus('success');
+                setMessage('Vérification réussie !');
+                setTimeout(() => router.push('/settings'), 2000);
+              }
             } else {
               setStatus('success');
               setMessage('Vérification réussie !');
