@@ -100,16 +100,13 @@ export function AuthFormAdvanced({
   async function handleEmailCheck(email: string) {
     try {
       setIsPending(true);
-      const data = await api.auth.checkEmail(email);
-      setDeterminedType(data.exists ? "login" : "signup");
+      // Pour le moment, on considère que c'est toujours un nouveau signup
+      // Cette logique sera améliorée avec la fonctionnalité checkEmail future
+      setDeterminedType("signup");
       setShowPasswordField(true);
       
-      // Pré-remplir le bon formulaire
-      if (data.exists) {
-        signinForm.setValue("email", email);
-      } else {
-        signupForm.setValue("email", email);
-      }
+      // Pré-remplir le formulaire signup
+      signupForm.setValue("email", email);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "An unexpected error occurred");
     } finally {
@@ -126,8 +123,8 @@ export function AuthFormAdvanced({
   async function onSigninSubmit(values: z.infer<typeof signinSchema>) {
     try {
       setIsPending(true);
-      const result = await api.auth.login(values);
-      if (result) {
+      const result = await api.auth.login(values.email, values.password);
+      if (result.success) {
         toast.success("Successfully signed in!");
         router.push(nextUrl);
       }
@@ -142,12 +139,11 @@ export function AuthFormAdvanced({
   async function onSignupSubmit(values: z.infer<typeof signupSchema>) {
     try {
       setIsPending(true);
-      await api.auth.signup({
-        email: values.email,
-        password: values.password,
-      });
-      toast.success("Account created successfully!");
-      router.push(nextUrl);
+      const result = await api.auth.signup(values.email, values.password);
+      if (result.success) {
+        toast.success("Account created successfully!");
+        router.push(nextUrl);
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Sign up failed");
     } finally {
