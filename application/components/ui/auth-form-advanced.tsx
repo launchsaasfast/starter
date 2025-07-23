@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Card,
@@ -39,6 +39,12 @@ export function AuthFormAdvanced({
   const [determinedType, setDeterminedType] = useState<"login" | "signup" | null>(
     mode === "auto" ? null : mode === "signin" ? "login" : "signup"
   );
+
+  useEffect(() => {
+    if (mode === "auto" && !email) {
+      setEmail(initialEmail || "");
+    }
+  }, [mode, initialEmail]);
 
   async function handleEmailCheck(email: string) {
     try {
@@ -161,101 +167,107 @@ export function AuthFormAdvanced({
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center flex flex-col gap-2">
-        <div className="flex flex-col gap-1">
-          <CardTitle className="text-2xl font-bold">
-            {getTitle()}
-          </CardTitle>
-          <CardDescription className="text-foreground/35">
-            {getDescription()}
-          </CardDescription>
-        </div>
-        {(!showPasswordField || mode !== "auto") && <SocialButtons />} 
-      </CardHeader>
-      <CardContent>
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.currentTarget);
-            await handleSubmit(formData);
-          }}
-          className="flex flex-col gap-5"
-        >
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={(showPasswordField && mode === "auto") || isPending}
-              required
-            />
+    <div className="w-full max-w-md mx-auto">
+      <Card className="w-full">
+        <CardHeader className="text-center flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
+            <CardTitle className="text-2xl font-bold">
+              {getTitle()}
+            </CardTitle>
+            <CardDescription className="text-foreground/35">
+              {getDescription()}
+            </CardDescription>
           </div>
+          {(!showPasswordField || mode !== "auto") && (
+            <div className="flex gap-2 justify-center">
+              <SocialButtons />
+            </div>
+          )}
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              await handleSubmit(formData);
+            }}
+            className="flex flex-col gap-5"
+          >
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={(showPasswordField && mode === "auto") || isPending}
+                required
+              />
+            </div>
 
-          {showPasswordField && (
-            <>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isPending}
-                  required
-                />
-              </div>
-
-              {(determinedType === "signup" || mode === "signup") && (
+            {showPasswordField && (
+              <>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Label htmlFor="password">Password</Label>
                   <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
+                    id="password"
+                    name="password"
                     type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     disabled={isPending}
                     required
                   />
                 </div>
-              )}
-            </>
-          )}
 
-          {formError && (
-            <div className="text-red-500 text-sm text-center">{formError}</div>
-          )}
+                {(determinedType === "signup" || mode === "signup") && (
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={isPending}
+                      required
+                    />
+                  </div>
+                )}
+              </>
+            )}
 
-          <Button type="submit" disabled={isPending} className="w-full">
-            {isPending ? "Loading..." : 
-              mode === "signin" ? "Sign In" :
-              mode === "signup" ? "Create Account" :
-              showPasswordField 
-                ? determinedType === "login" 
-                  ? "Sign In" 
-                  : "Create Account"
-                : "Continue"}
-          </Button>
+            {formError && (
+              <div className="text-red-500 text-sm text-center">{formError}</div>
+            )}
 
-          {(showPasswordField && mode === "auto") && (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleBack}
-              disabled={isPending}
-              className="w-full"
-            >
-              Back
+            <Button type="submit" disabled={isPending} className="w-full">
+              {isPending ? "Loading..." : 
+                mode === "signin" ? "Sign In" :
+                mode === "signup" ? "Create Account" :
+                showPasswordField 
+                  ? determinedType === "login" 
+                    ? "Sign In" 
+                    : "Create Account"
+                  : "Continue"}
             </Button>
-          )}
-        </form>
-      </CardContent>
-    </Card>
+
+            {(showPasswordField && mode === "auto") && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleBack}
+                disabled={isPending}
+                className="w-full"
+              >
+                Back
+              </Button>
+            )}
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
