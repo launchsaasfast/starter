@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
 import {
   Card,
   CardContent,
@@ -12,26 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
 import { Mail, User, Shield, Lock, Settings as SettingsIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
-
-// Schema de validation pour le changement d'email
-const changeEmailSchema = z.object({
-  newEmail: z.string().email('Format d\'email invalide'),
-  password: z.string().min(1, 'Mot de passe requis'),
-});
 
 type UserProfile = {
   email: string;
@@ -43,16 +25,6 @@ export default function SettingsPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isChangingEmail, setIsChangingEmail] = useState(false);
-
-  // Form pour changer l'email
-  const emailForm = useForm<z.infer<typeof changeEmailSchema>>({
-    resolver: zodResolver(changeEmailSchema),
-    defaultValues: {
-      newEmail: '',
-      password: '',
-    },
-  });
 
   // Récupérer le profil utilisateur
   useEffect(() => {
@@ -173,58 +145,31 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Mail className="h-5 w-5" />
-                Changer l'email
+                Adresse email
               </CardTitle>
               <CardDescription>
                 Modifier votre adresse email de connexion
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Form {...emailForm}>
-                <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
-                  <FormField
-                    control={emailForm.control}
-                    name="newEmail"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nouvelle adresse email</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="votre@nouvel-email.com"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={emailForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Mot de passe actuel</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Confirmez avec votre mot de passe"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={isChangingEmail}
-                  >
-                    {isChangingEmail ? 'Mise à jour...' : 'Mettre à jour l\'email'}
-                  </Button>
-                </form>
-              </Form>
+              <div className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Email actuel</p>
+                  <p className="font-medium">{user.email}</p>
+                </div>
+                
+                <Button 
+                  onClick={() => router.push('/settings/change-email')}
+                  className="w-full"
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Changer mon adresse email
+                </Button>
+                
+                <p className="text-xs text-muted-foreground text-center">
+                  🔒 Processus sécurisé en 2 étapes avec confirmation par email
+                </p>
+              </div>
             </CardContent>
           </Card>
 
