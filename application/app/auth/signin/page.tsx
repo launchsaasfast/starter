@@ -10,6 +10,11 @@ export default function SignInPage() {
           nextUrl="/settings"
           initialEmail={null}
         />
+        <div className="text-center mt-4">
+          <a href="/auth/forgot-password" className="text-sm text-blue-500 hover:underline">
+            Forgot your password?
+          </a>
+        </div>
       </div>
     </div>
   );

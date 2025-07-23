@@ -168,33 +168,33 @@ export function AuthFormAdvanced({
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <Card className="w-full">
-        <CardHeader className="text-center flex flex-col gap-2">
-          <div className="flex flex-col gap-1">
-            <CardTitle className="text-2xl font-bold">
+      <Card className="w-full bg-white shadow-lg rounded-lg border border-gray-200">
+        <CardHeader className="text-center flex flex-col gap-4 p-6">
+          <div className="flex flex-col gap-2">
+            <CardTitle className="text-3xl font-bold text-gray-800">
               {getTitle()}
             </CardTitle>
-            <CardDescription className="text-foreground/35">
+            <CardDescription className="text-gray-600">
               {getDescription()}
             </CardDescription>
           </div>
           {(!showPasswordField || mode !== "auto") && (
-            <div className="flex gap-2 justify-center">
+            <div className="flex gap-4 justify-center">
               <SocialButtons />
             </div>
           )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
           <form
             onSubmit={async (e) => {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
               await handleSubmit(formData);
             }}
-            className="flex flex-col gap-5"
+            className="flex flex-col gap-6"
           >
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -203,13 +203,14 @@ export function AuthFormAdvanced({
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={(showPasswordField && mode === "auto") || isPending}
                 required
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {showPasswordField && (
               <>
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
                   <Input
                     id="password"
                     name="password"
@@ -218,12 +219,13 @@ export function AuthFormAdvanced({
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isPending}
                     required
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 {(determinedType === "signup" || mode === "signup") && (
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">Confirm Password</Label>
                     <Input
                       id="confirmPassword"
                       name="confirmPassword"
@@ -232,6 +234,7 @@ export function AuthFormAdvanced({
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       disabled={isPending}
                       required
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
                 )}
@@ -242,7 +245,7 @@ export function AuthFormAdvanced({
               <div className="text-red-500 text-sm text-center">{formError}</div>
             )}
 
-            <Button type="submit" disabled={isPending} className="w-full">
+            <Button type="submit" disabled={isPending} className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">
               {isPending ? "Loading..." : 
                 mode === "signin" ? "Sign In" :
                 mode === "signup" ? "Create Account" :
@@ -259,7 +262,7 @@ export function AuthFormAdvanced({
                 variant="ghost"
                 onClick={handleBack}
                 disabled={isPending}
-                className="w-full"
+                className="w-full bg-gray-100 text-gray-700 py-2 rounded-md hover:bg-gray-200"
               >
                 Back
               </Button>
