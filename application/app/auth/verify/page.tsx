@@ -15,23 +15,32 @@ export default function VerifyPage() {
 
   useEffect(() => {
     async function handleVerification() {
+      // Récupérer tous les paramètres possibles
       const token = searchParams.get('token');
+      const code = searchParams.get('code');
       const type = searchParams.get('type');
+      const access_token = searchParams.get('access_token');
+      const refresh_token = searchParams.get('refresh_token');
 
-      if (!token || !type) {
+      console.log('Verification params:', { token, code, type, access_token, refresh_token });
+
+      // Vérifier qu'on a au moins un token
+      const verificationToken = token || code;
+      
+      if (!verificationToken && !access_token) {
         setStatus('error');
-        setMessage('Token ou type de vérification manquant');
+        setMessage('Token de vérification manquant');
         return;
       }
 
       try {
         const supabase = createClientSupabaseClient();
 
-        if (type === 'signup') {
-          // Vérification d'inscription
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: token,
-            type: 'signup'
+        if (access_token && refresh_token) {
+          // Ancien format avec access_token et refresh_token
+          const { error } = await supabase.auth.setSession({
+            access_token,
+            refresh_token
           });
 
           if (error) {
@@ -42,26 +51,41 @@ export default function VerifyPage() {
             setMessage('Votre compte a été vérifié avec succès !');
             setTimeout(() => router.push('/settings'), 2000);
           }
-        } 
-        else if (type === 'email_change') {
-          // Vérification de changement d'email
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: token,
-            type: 'email_change'
-          });
-
-          if (error) {
-            setStatus('error');
-            setMessage('Erreur lors du changement d\'email : ' + error.message);
-          } else {
-            setStatus('success');
-            setMessage('Votre email a été mis à jour avec succès !');
-            setTimeout(() => router.push('/settings'), 2000);
-          }
         }
-        else {
-          setStatus('error');
-          setMessage('Type de vérification non supporté');
+        else if (verificationToken) {
+          // Nouveau format avec code ou token
+          if (type === 'signup' || type === 'email_change') {
+            const { error } = await supabase.auth.verifyOtp({
+              token_hash: verificationToken,
+              type: type as 'signup' | 'email_change'
+            });
+
+            if (error) {
+              setStatus('error');
+              setMessage('Erreur lors de la vérification : ' + error.message);
+            } else {
+              setStatus('success');
+              setMessage(type === 'signup' 
+                ? 'Votre compte a été vérifié avec succès !' 
+                : 'Votre email a été mis à jour avec succès !');
+              setTimeout(() => router.push('/settings'), 2000);
+            }
+          } else {
+            // Essayer une vérification générique
+            const { error } = await supabase.auth.verifyOtp({
+              token_hash: verificationToken,
+              type: 'signup' // Par défaut signup
+            });
+
+            if (error) {
+              setStatus('error');
+              setMessage('Erreur lors de la vérification : ' + error.message);
+            } else {
+              setStatus('success');
+              setMessage('Vérification réussie !');
+              setTimeout(() => router.push('/settings'), 2000);
+            }
+          }
         }
       } catch (error) {
         setStatus('error');

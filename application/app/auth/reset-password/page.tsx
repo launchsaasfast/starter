@@ -22,12 +22,22 @@ export default function ResetPasswordPage() {
   
   // Gérer différents types de tokens
   const token = searchParams.get('token') || '';
+  const code = searchParams.get('code') || '';
   const type = searchParams.get('type') || '';
   const accessToken = searchParams.get('access_token') || '';
   const refreshToken = searchParams.get('refresh_token') || '';
 
   useEffect(() => {
     async function verifyToken() {
+      // Récupérer tous les paramètres possibles
+      const token = searchParams.get('token');
+      const code = searchParams.get('code');
+      const type = searchParams.get('type');
+      const accessToken = searchParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token');
+
+      console.log('Reset password params:', { token, code, type, accessToken, refreshToken });
+
       if (token && type === 'recovery') {
         // Nouveau format de token de récupération
         try {
@@ -40,21 +50,58 @@ export default function ResetPasswordPage() {
           if (!error) {
             setTokenValid(true);
           } else {
-            setError('Token de récupération invalide ou expiré');
+            console.error('Recovery token verification error:', error);
+            setError('Token de récupération invalide ou expiré: ' + error.message);
           }
         } catch (err) {
+          console.error('Token verification error:', err);
           setError('Erreur lors de la vérification du token');
+        }
+      } else if (code) {
+        // Format avec code (peut-être de Supabase)
+        try {
+          const supabase = createClientSupabaseClient();
+          
+          // Essayer de récupérer la session avec le code
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          
+          if (!error && data.session) {
+            setTokenValid(true);
+            console.log('Code exchange successful');
+          } else {
+            console.error('Code exchange error:', error);
+            // Essayer comme token de récupération
+            const { error: recoveryError } = await supabase.auth.verifyOtp({
+              token_hash: code,
+              type: 'recovery'
+            });
+            
+            if (!recoveryError) {
+              setTokenValid(true);
+            } else {
+              setError('Code de récupération invalide: ' + (error?.message || recoveryError.message));
+            }
+          }
+        } catch (err) {
+          console.error('Code verification error:', err);
+          setError('Erreur lors de la vérification du code');
         }
       } else if (accessToken) {
         // Ancien format avec access_token
         setTokenValid(true);
       } else {
-        setError('Token de récupération manquant ou invalide');
+        setError('Token de récupération manquant. Paramètres trouvés: ' + JSON.stringify({
+          token: !!token,
+          code: !!code,
+          type,
+          accessToken: !!accessToken,
+          allParams: Object.fromEntries(searchParams.entries())
+        }));
       }
     }
 
     verifyToken();
-  }, [token, type, accessToken]);
+  }, [token, type, accessToken, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,8 +122,8 @@ export default function ResetPasswordPage() {
     try {
       const supabase = createClientSupabaseClient();
       
-      if (token && type === 'recovery') {
-        // Utiliser le nouveau système avec token de récupération
+      if ((token && type === 'recovery') || code) {
+        // Utiliser le nouveau système avec token de récupération ou code
         const { error } = await supabase.auth.updateUser({ 
           password: password 
         });

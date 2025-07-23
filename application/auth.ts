@@ -13,14 +13,16 @@ export const AUTH_CONFIG = {
     emailChange: '/auth/verify', 
     passwordRecovery: '/auth/reset-password',
     magicLink: '/auth/verify',
+    callback: '/auth/callback',
     base: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   },
   supabase: {
     // Configuration pour les redirections Supabase
     redirectTo: {
-      signup: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/verify?type=signup`,
+      signup: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
       emailChange: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/verify?type=email_change`,
       passwordRecovery: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password?type=recovery`,
+      callback: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
     }
   }
 };
