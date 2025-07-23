@@ -32,7 +32,6 @@ export default function SettingsPage() {
       try {
         const userData = await api.user.getProfile();
         setUser(userData);
-        emailForm.setValue('newEmail', userData.email); // Pré-remplir avec l'email actuel
       } catch (error) {
         toast.error('Erreur lors du chargement du profil');
         router.push('/auth/signin');
@@ -42,25 +41,7 @@ export default function SettingsPage() {
     };
 
     fetchProfile();
-  }, [router, emailForm]);
-
-  // Fonction pour changer l'email
-  async function onEmailSubmit(values: z.infer<typeof changeEmailSchema>) {
-    try {
-      setIsChangingEmail(true);
-      await api.auth.changeEmail(values.newEmail, values.password);
-      toast.success('Email mis à jour avec succès ! Vérifiez votre nouvelle adresse email.');
-      emailForm.reset();
-      
-      // Rafraîchir le profil
-      const updatedUser = await api.user.getProfile();
-      setUser(updatedUser);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erreur lors du changement d\'email');
-    } finally {
-      setIsChangingEmail(false);
-    }
-  }
+  }, [router]);
 
   async function handleLogout() {
     try {
