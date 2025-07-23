@@ -95,11 +95,11 @@ export const api = {
       return handleResponse(response);
     },
 
-    async changeEmail(newEmail: string, password: string) {
+    async changeEmail(newEmail: string, currentPassword: string) {
       const response = await fetch('/api/auth/change-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newEmail, password }),
+        body: JSON.stringify({ newEmail, currentPassword }),
       });
       const result = await handleResponse(response);
       mutate('/api/user/me'); // Rafraîchir le profil utilisateur
