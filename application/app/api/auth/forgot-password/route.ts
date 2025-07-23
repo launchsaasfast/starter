@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
+import { createServerSupabaseClient } from '@/lib/supabaseClient';
+import { AUTH_CONFIG } from '@/auth';
 import {
   securityLogger,
   SecurityEventType,
@@ -31,6 +32,9 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now();
   let email = '';
   try {
+    // Créer le client Supabase avec SSR
+    const supabase = await createServerSupabaseClient();
+    
     const body = await req.json();
     if (!body.email) {
       await securityLogger.logSecurityEvent(
@@ -65,7 +69,7 @@ export async function POST(req: NextRequest) {
     );
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: process.env.NEXT_PUBLIC_SITE_URL + '/auth/reset-password'
+      redirectTo: AUTH_CONFIG.supabase.redirectTo.passwordRecovery
     });
 
     await securityLogger.logSecurityEvent(

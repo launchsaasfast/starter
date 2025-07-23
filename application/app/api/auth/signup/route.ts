@@ -8,6 +8,7 @@ import {
   SecurityEventSeverity 
 } from '@/lib/security-logger';
 import { createServerSupabaseClient } from '@/lib/supabaseClient';
+import { AUTH_CONFIG } from '@/auth';
 
 /**
  * Délai minimum pour les réponses (prévention des attaques de timing)
@@ -122,6 +123,7 @@ export async function POST(req: NextRequest) {
       email, 
       password,
       options: {
+        emailRedirectTo: AUTH_CONFIG.supabase.redirectTo.signup,
         data: {
           signup_ip: req.headers.get('x-forwarded-for') || 
                     req.headers.get('x-real-ip') || 

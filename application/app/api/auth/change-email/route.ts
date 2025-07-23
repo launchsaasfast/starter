@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabaseClient';
+import { AUTH_CONFIG } from '@/auth';
 import {
   securityLogger,
   SecurityEventType,
