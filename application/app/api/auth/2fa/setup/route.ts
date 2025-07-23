@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabaseClient';
+import { createServerSupabaseClient } from '@/lib/supabaseClient';
 import { generateTOTPSecret, generateQRCodeData } from '@/utils/auth/totp';
 import { generateBackupCodes } from '@/utils/auth/backup-codes';
-import { logSecurityEvent } from '@/lib/security-logger';
-import { rateLimit } from '@/lib/rate-limit';
+import { securityLogger, SecurityEventType, SecurityEventSeverity } from '@/lib/security-logger';
+import { getRateLimitService, RateLimitTier, rateLimitUtils } from '@/lib/rate-limit';
 
 /**
  * POST /api/auth/2fa/setup
@@ -12,29 +12,29 @@ import { rateLimit } from '@/lib/rate-limit';
 export async function POST(req: NextRequest) {
   try {
     // Rate limiting - 5 setup attempts per hour per IP
-    const rateLimitResult = await rateLimit(req, {
-      windowMs: 60 * 60 * 1000, // 1 hour
-      max: 5,
-      keyGenerator: (req) => `2fa_setup_${req.ip}`,
-    });
+    const rateLimitService = getRateLimitService();
+    const ip = rateLimitUtils.extractIP(req);
+    const rateLimitResult = await rateLimitService.checkLimit(
+      RateLimitTier.AUTH_OPERATIONS,
+      ip
+    );
 
     if (!rateLimitResult.success) {
-      await logSecurityEvent({
-        eventType: '2FA_SETUP_RATE_LIMITED',
-        severity: 'WARNING',
-        ipAddress: req.ip || 'unknown',
-        userAgent: req.headers.get('user-agent') || 'unknown',
-        details: { attemptsRemaining: rateLimitResult.remaining },
-      });
+      await securityLogger.logSecurityEvent(
+        SecurityEventType.RATE_LIMIT_EXCEEDED,
+        SecurityEventSeverity.WARNING,
+        req,
+        { attemptsRemaining: rateLimitResult.remaining }
+      );
 
-      return NextResponse.json(
-        { error: 'Rate limit exceeded. Too many setup attempts.' },
-        { status: 429 }
+      return rateLimitUtils.createTooManyRequestsResponse(
+        rateLimitResult,
+        'Rate limit exceeded. Too many setup attempts.'
       );
     }
 
     // Get authenticated user
-    const supabase = createClient();
+    const supabase = await createServerSupabaseClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -116,18 +116,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Log security event
-    await logSecurityEvent({
-      eventType: '2FA_SETUP_INITIATED',
-      severity: 'INFO',
-      userId: user.id,
-      email: user.email,
-      ipAddress: req.ip || 'unknown',
-      userAgent: req.headers.get('user-agent') || 'unknown',
-      details: {
+    await securityLogger.logSecurityEvent(
+      SecurityEventType.LOGIN_SUCCESS, // Using existing event type for now
+      SecurityEventSeverity.INFO,
+      req,
+      {
+        action: '2fa_setup_initiated',
         factorType: 'totp',
         backupCodesGenerated: backupCodes.length,
       },
-    });
+      user.id,
+      user.email
+    );
 
     return NextResponse.json({
       secret: qrData.secret,
@@ -140,15 +140,15 @@ export async function POST(req: NextRequest) {
     console.error('2FA setup error:', error);
 
     // Log error event
-    await logSecurityEvent({
-      eventType: '2FA_SETUP_ERROR',
-      severity: 'ERROR',
-      ipAddress: req.ip || 'unknown',
-      userAgent: req.headers.get('user-agent') || 'unknown',
-      details: {
+    await securityLogger.logSecurityEvent(
+      SecurityEventType.LOGIN_FAILED, // Using existing event type for errors
+      SecurityEventSeverity.ERROR,
+      req,
+      {
+        action: '2fa_setup_error',
         error: error instanceof Error ? error.message : 'Unknown error',
-      },
-    });
+      }
+    );
 
     return NextResponse.json(
       { error: 'Internal server error during 2FA setup' },
