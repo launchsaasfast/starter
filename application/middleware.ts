@@ -268,7 +268,6 @@ export async function middleware(request: NextRequest) {
 
 /**
  * Configuration du matcher pour cibler les bonnes routes
- * Utilise Edge Runtime pour de meilleures performances
  */
 export const config = {
   // Matcher optimisé pour intercepter seulement les routes API nécessaires
@@ -282,9 +281,6 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|health|status).*)',
     '/(api|trpc)(.*)',
   ],
-  
-  // Utiliser experimental-edge runtime
-  runtime: 'experimental-edge',
 };
 
 /**

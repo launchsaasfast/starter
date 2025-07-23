@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { AuthFormAdvanced } from '@/components/ui/auth-form-advanced';
+import { AuthFormAdvanced } from '@/components/auth-form';
 import { BackButton } from "@/components/back-button";
 
 export default function SignUpPage() {
