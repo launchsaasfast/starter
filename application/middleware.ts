@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getRateLimitService, RateLimitTier, rateLimitUtils } from '@/lib/rate-limit';
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 
 /**
  * Configuration des routes à protéger et leurs tiers de rate limiting
@@ -110,10 +110,29 @@ export async function middleware(request: NextRequest) {
   // Protéger les pages settings : rediriger vers signin si non authentifié
   if (pathname.startsWith('/settings')) {
     const res = NextResponse.next();
-    const supabase = createMiddlewareClient({ req: request, res });
+    
+    // Créer le client Supabase pour le middleware
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              res.cookies.set(name, value, options);
+            });
+          },
+        },
+      }
+    );
+    
     const {
       data: { session },
     } = await supabase.auth.getSession();
+    
     if (!session) {
       // Redirection vers la page de connexion
       return NextResponse.redirect(new URL('/auth/signin', request.url));
@@ -264,8 +283,8 @@ export const config = {
     '/(api|trpc)(.*)',
   ],
   
-  // Utiliser Edge Runtime pour de meilleures performances
-  runtime: 'edge',
+  // Utiliser experimental-edge runtime
+  runtime: 'experimental-edge',
 };
 
 /**

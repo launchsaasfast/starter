@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
+import { createServerSupabaseClient } from '@/lib/supabaseClient';
 import { 
   securityLogger, 
   SecurityHeaders,
@@ -49,6 +49,9 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now();
   
   try {
+    // Initialisation du client Supabase avec la nouvelle API SSR
+    const supabase = await createServerSupabaseClient();
+    
     // Extraction des infos utilisateur avant déconnexion
     const userInfo = extractUserFromAuth(req);
     
