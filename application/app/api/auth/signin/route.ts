@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { 
   securityLogger, 
   SecurityMessages, 
@@ -7,6 +8,7 @@ import {
   SecurityEventType,
   SecurityEventSeverity 
 } from '@/lib/security-logger';
+import { supabase } from '@/lib/supabaseClient';
 
 /**
  * Délai minimum pour les réponses (prévention des attaques de timing)
@@ -91,6 +93,10 @@ export async function POST(req: NextRequest) {
   let email: string = '';
   
   try {
+    // Initialisation du client Supabase avec cookies
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    
     // Validation des données d'entrée
     const body = await req.json();
     
@@ -246,12 +252,6 @@ export async function POST(req: NextRequest) {
           email: data.user?.email,
           email_confirmed_at: data.user?.email_confirmed_at,
           last_sign_in_at: data.user?.last_sign_in_at
-        },
-        session: {
-          access_token: data.session?.access_token,
-          refresh_token: data.session?.refresh_token,
-          expires_at: data.session?.expires_at,
-          token_type: data.session?.token_type
         },
         message: 'Connexion réussie.'
       })),

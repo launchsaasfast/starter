@@ -1,17 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Authentification requise' }, { status: 401 });
-  }
+  try {
+    const cookieStore = cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+    
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
-  const token = authHeader.split(' ')[1];
-  const { data: userData, error } = await supabase.auth.getUser(token);
-  if (error || !userData.user) {
-    return NextResponse.json({ error: 'Session invalide' }, { status: 401 });
-  }
+    if (sessionError || !session) {
+      return NextResponse.json({ error: 'Authentification requise' }, { status: 401 });
+    }
 
-  return NextResponse.json({ email: userData.user.email });
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    
+    if (userError || !userData.user) {
+      return NextResponse.json({ error: 'Session invalide' }, { status: 401 });
+    }
+
+    return NextResponse.json({ 
+      email: userData.user.email,
+      name: userData.user.user_metadata?.full_name || userData.user.user_metadata?.name,
+      avatar: userData.user.user_metadata?.avatar_url
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération du profil utilisateur:', error);
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
+  }
 }
