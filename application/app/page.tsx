@@ -1,3 +1,7 @@
+'use client'
+
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +10,16 @@ import { Header } from "@/components/header";
 import { ArrowRight, Shield, Zap, Users } from "lucide-react";
 
 export default function Home() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const message = searchParams.get('message');
+    if (message && message.includes('Confirmation')) {
+      // Rediriger vers la page de confirmation avec le message
+      router.push(`/settings/email-confirmation?message=${encodeURIComponent(message)}`);
+    }
+  }, [searchParams, router]);
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}

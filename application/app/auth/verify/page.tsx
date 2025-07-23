@@ -82,12 +82,12 @@ export default function VerifyPage() {
                 } else {
                   setStatus('success');
                   setMessage('Votre email a été mis à jour avec succès !');
-                  setTimeout(() => router.push('/settings'), 2000);
+                  setTimeout(() => router.push('/settings/email-success'), 2000);
                 }
               } else {
                 setStatus('success');
                 setMessage('Votre email a été mis à jour avec succès !');
-                setTimeout(() => router.push('/settings'), 2000);
+                setTimeout(() => router.push('/settings/email-success'), 2000);
               }
             } catch (err) {
               setStatus('error');

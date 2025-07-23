@@ -48,19 +48,7 @@ export default function ChangeEmailPage() {
     setMessage('')
 
     try {
-      // Vérifier d'abord le mot de passe
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: currentEmail,
-        password: password
-      })
-
-      if (signInError) {
-        setError('Mot de passe incorrect')
-        setLoading(false)
-        return
-      }
-
-      // Changer l'email
+      // Changer l'email directement avec Supabase
       const { error: updateError } = await supabase.auth.updateUser({
         email: newEmail
       })
