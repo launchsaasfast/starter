@@ -88,40 +88,83 @@ export default function ResetPasswordPage() {
     try {
       const supabase = createClientSupabaseClient();
       
-      if ((token && type === 'recovery') || code) {
-        // Utiliser le nouveau système avec token de récupération ou code
-        const { error } = await supabase.auth.updateUser({ 
+      // Détecter le token à utiliser (token, code, ou access_token)
+      const verificationToken = token || code;
+      
+      if (verificationToken && type === 'recovery') {
+        // Nouveau système: d'abord vérifier le token de récupération
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: verificationToken,
+          type: 'recovery'
+        });
+        
+        if (verifyError) {
+          setError('Code de récupération invalide: ' + verifyError.message);
+          return;
+        }
+        
+        // Ensuite changer le mot de passe
+        const { error: updateError } = await supabase.auth.updateUser({ 
           password: password 
         });
         
-        if (error) {
-          setError('Erreur lors de la mise à jour du mot de passe: ' + error.message);
+        if (updateError) {
+          setError('Erreur lors de la mise à jour du mot de passe: ' + updateError.message);
+        } else {
+          setMessage('Mot de passe mis à jour avec succès !');
+          setTimeout(() => router.push('/auth/signin'), 2000);
+        }
+      } else if (verificationToken) {
+        // Essayer comme token de récupération générique
+        const { error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: verificationToken,
+          type: 'recovery'
+        });
+        
+        if (verifyError) {
+          setError('Code de récupération invalide: ' + verifyError.message);
+          return;
+        }
+        
+        // Ensuite changer le mot de passe
+        const { error: updateError } = await supabase.auth.updateUser({ 
+          password: password 
+        });
+        
+        if (updateError) {
+          setError('Erreur lors de la mise à jour du mot de passe: ' + updateError.message);
+        } else {
+          setMessage('Mot de passe mis à jour avec succès !');
+          setTimeout(() => router.push('/auth/signin'), 2000);
+        }
+      } else if (accessToken && refreshToken) {
+        // Ancien système avec session tokens
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+        
+        if (sessionError) {
+          setError('Session invalide: ' + sessionError.message);
+          return;
+        }
+        
+        const { error: updateError } = await supabase.auth.updateUser({ 
+          password: password 
+        });
+        
+        if (updateError) {
+          setError('Erreur lors de la mise à jour du mot de passe: ' + updateError.message);
         } else {
           setMessage('Mot de passe mis à jour avec succès !');
           setTimeout(() => router.push('/auth/signin'), 2000);
         }
       } else {
-        // Fallback vers l'API route pour l'ancien système
-        const res = await fetch('/api/auth/reset-password', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            password, 
-            access_token: accessToken, 
-            refresh_token: refreshToken 
-          })
-        });
-        
-        const data = await res.json();
-        if (res.ok) {
-          setMessage(data.message);
-          setTimeout(() => router.push('/auth/signin'), 2000);
-        } else {
-          setError(data.error || 'Échec de la réinitialisation');
-        }
+        setError('Token de récupération manquant ou invalide');
       }
     } catch (err) {
       setError('Erreur réseau. Veuillez réessayer.');
+      console.error('Reset password error:', err);
     } finally {
       setLoading(false);
     }
