@@ -8,6 +8,8 @@ import { getRateLimitService, RateLimitTier, rateLimitUtils } from '@/lib/rate-l
 interface VerifyRequest {
   code: string;
   type: 'totp' | 'backup';
+  challengeId?: string;
+  factorId?: string;
 }
 
 /**
@@ -39,7 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Parse request body
-    const { code, type = 'totp' }: VerifyRequest = await req.json();
+    const { code, type = 'totp', challengeId, factorId }: VerifyRequest = await req.json();
 
     if (!code) {
       return NextResponse.json(
@@ -63,47 +65,85 @@ export async function POST(req: NextRequest) {
     let aal: 'aal1' | 'aal2' = 'aal1';
 
     if (type === 'totp') {
-      // Verify TOTP code
-      const { data: mfaFactor } = await supabase
-        .from('user_mfa_factors')
-        .select('secret, is_active')
-        .eq('user_id', user.id)
-        .eq('factor_type', 'totp')
-        .single();
+      // Si challengeId et factorId sont fournis, utiliser la méthode native Supabase
+      if (challengeId && factorId) {
+        const { data: verifyData, error: verifyError } = await supabase.auth.mfa.verify({
+          factorId,
+          challengeId,
+          code
+        });
 
-      if (!mfaFactor?.secret) {
-        await securityLogger.logSecurityEvent(
-          SecurityEventType.LOGIN_FAILED,
-          SecurityEventSeverity.WARNING,
-          req,
-          { action: '2fa_verify_no_factor', type },
-          user.id,
-          user.email
-        );
+        if (verifyError) {
+          await securityLogger.logSecurityEvent(
+            SecurityEventType.LOGIN_FAILED,
+            SecurityEventSeverity.WARNING,
+            req,
+            { 
+              action: '2fa_verify_failed_native', 
+              type, 
+              codeLength: code.length,
+              challengeId,
+              factorId,
+              error: verifyError.message
+            },
+            user.id,
+            user.email
+          );
 
-        return NextResponse.json(
-          { error: 'TOTP not configured for this account' },
-          { status: 400 }
-        );
-      }
-
-      // Verify the TOTP code
-      verificationSuccess = verifyTOTPCode(code, mfaFactor.secret);
-
-      if (verificationSuccess) {
-        // Activate the MFA factor if this is the first successful verification
-        if (!mfaFactor.is_active) {
-          await supabase
-            .from('user_mfa_factors')
-            .update({
-              is_active: true,
-              verified_at: new Date().toISOString(),
-            })
-            .eq('user_id', user.id)
-            .eq('factor_type', 'totp');
+          return NextResponse.json(
+            { 
+              success: false,
+              message: 'Invalid verification code',
+            },
+            { status: 400 }
+          );
         }
 
+        verificationSuccess = true;
         aal = 'aal2';
+      } else {
+        // Méthode legacy : vérifier TOTP code directement
+        const { data: mfaFactor } = await supabase
+          .from('user_mfa_factors')
+          .select('secret, is_active')
+          .eq('user_id', user.id)
+          .eq('factor_type', 'totp')
+          .single();
+
+        if (!mfaFactor?.secret) {
+          await securityLogger.logSecurityEvent(
+            SecurityEventType.LOGIN_FAILED,
+            SecurityEventSeverity.WARNING,
+            req,
+            { action: '2fa_verify_no_factor', type },
+            user.id,
+            user.email
+          );
+
+          return NextResponse.json(
+            { error: 'TOTP not configured for this account' },
+            { status: 400 }
+          );
+        }
+
+        // Verify the TOTP code
+        verificationSuccess = verifyTOTPCode(code, mfaFactor.secret);
+
+        if (verificationSuccess) {
+          // Activate the MFA factor if this is the first successful verification
+          if (!mfaFactor.is_active) {
+            await supabase
+              .from('user_mfa_factors')
+              .update({
+                is_active: true,
+                verified_at: new Date().toISOString(),
+              })
+              .eq('user_id', user.id)
+              .eq('factor_type', 'totp');
+          }
+
+          aal = 'aal2';
+        }
       }
 
     } else if (type === 'backup') {

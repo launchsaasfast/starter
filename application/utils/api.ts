@@ -24,6 +24,13 @@ export interface MFAStatus {
   hasBackupCodes: boolean;
 }
 
+export interface MFAChallengeResponse {
+  success: boolean;
+  challengeId: string;
+  factorId: string;
+  message: string;
+}
+
 /**
  * API client for 2FA operations
  */

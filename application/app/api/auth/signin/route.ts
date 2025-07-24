@@ -186,6 +186,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Vérifier si l'utilisateur a activé la 2FA
+    let requiresMFA = false;
+    if (data.user) {
+      try {
+        // Vérifier les facteurs MFA actifs
+        const { data: mfaFactors } = await supabaseClient
+          .from('user_mfa_factors')
+          .select('id, is_active, verified_at')
+          .eq('user_id', data.user.id)
+          .eq('is_active', true)
+          .not('verified_at', 'is', null);
+
+        const hasActiveMFA = mfaFactors && mfaFactors.length > 0;
+        
+        if (hasActiveMFA) {
+          // Vérifier le niveau AAL actuel
+          try {
+            const { data: aalData } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+            
+            // Si l'utilisateur n'a que AAL1, il doit faire la 2FA
+            if (aalData?.currentLevel === 'aal1') {
+              requiresMFA = true;
+            }
+          } catch (aalError) {
+            console.warn('Erreur lors de la vérification AAL:', aalError);
+            // En cas d'erreur AAL, on demande la 2FA par précaution
+            requiresMFA = true;
+          }
+        }
+      } catch (mfaError) {
+        console.warn('Erreur lors de la vérification MFA:', mfaError);
+        // En cas d'erreur, on continue sans MFA (pour éviter de bloquer l'accès)
+      }
+    }
+
     // Log de succès de connexion
     await securityLogger.logLoginAttempt(
       req,
@@ -195,10 +230,32 @@ export async function POST(req: NextRequest) {
       data.user?.id
     );
 
-    // Création de la réponse de succès
+    // Si 2FA est requise, retourner le statut approprié
+    if (requiresMFA) {
+      const response = await ensureMinimumResponseTime(
+        Promise.resolve(NextResponse.json({
+          success: true,
+          requiresMFA: true,
+          user: {
+            id: data.user?.id,
+            email: data.user?.email,
+            email_confirmed_at: data.user?.email_confirmed_at,
+            last_sign_in_at: data.user?.last_sign_in_at
+          },
+          message: 'Vérification 2FA requise pour terminer la connexion.'
+        })),
+        startTime
+      );
+
+      SecurityHeaders.addSecurityHeaders(response);
+      return response;
+    }
+
+    // Création de la réponse de succès pour connexion normale
     const response = await ensureMinimumResponseTime(
       Promise.resolve(NextResponse.json({
         success: true,
+        requiresMFA: false,
         user: {
           id: data.user?.id,
           email: data.user?.email,
