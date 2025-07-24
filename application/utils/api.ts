@@ -139,6 +139,25 @@ export const auth2FAApi = {
     
     return response.json();
   },
+
+  /**
+   * Create MFA challenge for login verification
+   */
+  async createChallenge(): Promise<MFAChallengeResponse> {
+    const response = await fetch('/api/auth/mfa/challenge', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to create MFA challenge');
+    }
+    
+    return response.json();
+  },
 };
 
 /**
