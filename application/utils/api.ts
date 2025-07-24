@@ -57,13 +57,26 @@ export const auth2FAApi = {
   /**
    * Verify TOTP code or backup code
    */
-  async verify(code: string, type: 'totp' | 'backup' = 'totp'): Promise<VerificationResponse> {
+  async verify(
+    code: string, 
+    type: 'totp' | 'backup' = 'totp',
+    challengeId?: string,
+    factorId?: string
+  ): Promise<VerificationResponse> {
+    const body: any = { code, type };
+    
+    // Ajouter challengeId et factorId si fournis (pour le flux de connexion)
+    if (challengeId && factorId) {
+      body.challengeId = challengeId;
+      body.factorId = factorId;
+    }
+
     const response = await fetch('/api/auth/2fa/verify', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ code, type }),
+      body: JSON.stringify(body),
     });
     
     if (!response.ok) {
