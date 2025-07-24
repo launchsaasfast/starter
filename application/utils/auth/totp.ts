@@ -3,7 +3,7 @@
  * Implementation according to RFC 6238 standards
  */
 
-import { createHash, randomBytes } from 'crypto';
+import { createHmac, randomBytes } from 'crypto';
 
 export interface TOTPSecret {
   secret: string;
@@ -149,8 +149,7 @@ function generateHOTP(
   counterBuffer.writeUInt32BE(counter & 0xffffffff, 4);
 
   // Generate HMAC
-  const hmac = createHash(`${algorithm}`);
-  hmac.update(secret);
+  const hmac = createHmac(algorithm, secret);
   hmac.update(counterBuffer);
   const hash = hmac.digest();
 

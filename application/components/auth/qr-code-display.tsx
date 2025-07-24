@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Check, Smartphone, Eye, EyeOff } from "lucide-react";
+import { Copy, Check, Smartphone, Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import QRCode from "qrcode";
 
 interface QRCodeDisplayProps {
   secret: string;
@@ -15,9 +16,36 @@ interface QRCodeDisplayProps {
   email: string;
 }
 
-export function QRCodeDisplay({ secret, email }: QRCodeDisplayProps) {
+export function QRCodeDisplay({ secret, qrCodeUrl, email }: QRCodeDisplayProps) {
   const [copied, setCopied] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
+  const [qrCodeLoading, setQrCodeLoading] = useState(true);
+
+  useEffect(() => {
+    // Générer le QR code à partir de l'URL TOTP
+    if (qrCodeUrl) {
+      setQrCodeLoading(true);
+      QRCode.toDataURL(qrCodeUrl, {
+        width: 256,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        },
+        errorCorrectionLevel: 'M'
+      })
+      .then(dataUrl => {
+        setQrCodeDataUrl(dataUrl);
+        setQrCodeLoading(false);
+      })
+      .catch(error => {
+        console.error('Error generating QR code:', error);
+        toast.error('Erreur lors de la génération du QR code');
+        setQrCodeLoading(false);
+      });
+    }
+  }, [qrCodeUrl]);
 
   const copySecret = async () => {
     try {
@@ -87,21 +115,35 @@ export function QRCodeDisplay({ secret, email }: QRCodeDisplayProps) {
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-4">
           <div className="bg-white p-6 rounded-lg border-2 border-gray-200">
-            {/* QR Code placeholder - in real implementation, use react-qr-code */}
-            <div className="w-48 h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-              <div className="text-center space-y-2">
-                <div className="text-xs text-gray-500 font-mono">QR CODE</div>
-                <div className="text-xs text-gray-400">
-                  Scan with
-                  <br />
-                  authenticator app
+            {qrCodeLoading ? (
+              <div className="w-48 h-48 flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <Loader2 className="h-8 w-8 animate-spin text-gray-500 mx-auto" />
+                  <div className="text-xs text-gray-500">Génération du QR code...</div>
                 </div>
               </div>
-            </div>
+            ) : qrCodeDataUrl ? (
+              <img 
+                src={qrCodeDataUrl} 
+                alt="QR Code pour authentification 2FA" 
+                className="w-48 h-48"
+              />
+            ) : (
+              <div className="w-48 h-48 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <div className="text-xs text-gray-500 font-mono">QR CODE</div>
+                  <div className="text-xs text-gray-400">
+                    Erreur de génération
+                    <br />
+                    Utilisez la clé manuelle
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           
           <p className="text-xs text-gray-600 text-center max-w-xs">
-            Can&apos;t scan? Use the manual setup key below instead
+            {qrCodeDataUrl ? "Impossible de scanner ? Utilisez la clé manuelle ci-dessous" : "Utilisez la clé de configuration manuelle ci-dessous"}
           </p>
         </CardContent>
       </Card>
