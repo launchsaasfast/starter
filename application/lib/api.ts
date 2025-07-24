@@ -6,6 +6,7 @@ interface AuthResponse {
   success: boolean;
   message?: string;
   error?: string;
+  requiresMFA?: boolean;
   user?: {
     id: string;
     email: string;

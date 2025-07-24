@@ -79,6 +79,10 @@ export function AuthFormAdvanced({
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
   const [showBackupCodesModal, setShowBackupCodesModal] = useState(false);
+  
+  // États pour le challenge MFA lors du login
+  const [challengeId, setChallengeId] = useState<string>("");
+  const [factorId, setFactorId] = useState<string>("");
 
   // Formes
   const emailForm = useForm<z.infer<typeof emailSchema>>({
