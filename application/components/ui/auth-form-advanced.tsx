@@ -264,9 +264,9 @@ export function AuthFormAdvanced({
       case "setup2FA":
         return "Scan the QR code with your authenticator app";
       case "verify2FA":
-        return "Enter the code from your authenticator app";
+        return "Entrez le code de votre application d'authentification";
       case "showBackupCodes":
-        return "Save these codes in a secure location";
+        return "Sauvegardez ces codes dans un endroit sécurisé";
       case "password":
         if (mode === "signin") return "Enter your credentials to sign in";
         if (mode === "signup") return "Create a password to get started";
@@ -579,7 +579,7 @@ export function AuthFormAdvanced({
                 onBackupCode={(code) => handle2FAVerification(code, 'backup')}
                 showBackupOption={true}
                 isPending={isPending}
-                placeholder="Enter your 6-digit authenticator code"
+                placeholder="Entrez votre code d'authentification à 6 chiffres"
               />
 
               <Button
@@ -589,7 +589,7 @@ export function AuthFormAdvanced({
                 className="w-full h-11"
                 disabled={isPending}
               >
-                Back to login
+                Retour à la connexion
               </Button>
             </div>
           )}
