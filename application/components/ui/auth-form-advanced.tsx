@@ -198,14 +198,16 @@ export function AuthFormAdvanced({
   async function handle2FAVerification(code: string, type: 'totp' | 'backup' = 'totp') {
     try {
       setIsPending(true);
-      const result = await auth2FAApi.verify(code, type);
+      
+      // Utiliser challengeId et factorId pour la vérification de connexion
+      const result = await auth2FAApi.verify(code, type, challengeId, factorId);
       
       if (result.success) {
-        toast.success("2FA verification successful!");
+        toast.success("Vérification 2FA réussie !");
         router.push(nextUrl);
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "2FA verification failed");
+      toast.error(error instanceof Error ? error.message : "Échec de la vérification 2FA");
     } finally {
       setIsPending(false);
     }
@@ -245,9 +247,9 @@ export function AuthFormAdvanced({
       case "setup2FA":
         return "Secure your account";
       case "verify2FA":
-        return "Two-factor authentication";
+        return "Authentification à deux facteurs";
       case "showBackupCodes":
-        return "Save backup codes";
+        return "Sauvegarder les codes de récupération";
       case "password":
         if (mode === "signin") return "Welcome back";
         if (mode === "signup") return "Create your account";
