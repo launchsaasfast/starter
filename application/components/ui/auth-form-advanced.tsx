@@ -128,20 +128,25 @@ export function AuthFormAdvanced({
       
       if (result.success) {
         // Vérifier si 2FA est requis
-        const mfaStatus = await auth2FAApi.getStatus();
-        
-        if (mfaStatus.enabled) {
-          // Rediriger vers verification 2FA
-          setAuthState("verify2FA");
-          toast.info("Please enter your 2FA code to complete login");
+        if (result.requiresMFA) {
+          // Créer un challenge MFA
+          try {
+            const challengeResponse = await auth2FAApi.createChallenge();
+            setChallengeId(challengeResponse.challengeId);
+            setFactorId(challengeResponse.factorId);
+            setAuthState("verify2FA");
+            toast.info("Veuillez entrer votre code 2FA pour terminer la connexion");
+          } catch (challengeError) {
+            toast.error("Erreur lors de l'initialisation 2FA: " + (challengeError instanceof Error ? challengeError.message : "Erreur inconnue"));
+          }
         } else {
           // Connexion réussie sans 2FA
-          toast.success("Successfully signed in!");
+          toast.success("Connexion réussie !");
           router.push(nextUrl);
         }
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Sign in failed");
+      toast.error(error instanceof Error ? error.message : "Échec de la connexion");
     } finally {
       setIsPending(false);
     }
